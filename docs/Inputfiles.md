@@ -96,3 +96,7 @@ If PLUMED does not cover your use case, custom order parameters can be defined d
 4. Specify the function name when providing run inputs at login
 
  See [Example Custom OP scripts](assets/samplefiles/customOPS/) for a working example.
+
+ ### Note on software's capacity to recognize faulty input files
+
+ This AdSamp software is designed to recognize errors in user inputs prior to a run beginning, during the initial interaction. As such, these formatting issues will be recognized before the launch begins and the user will be warned accordingly.
