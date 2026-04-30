@@ -2,7 +2,7 @@
 
 This software requires a set of input files in order to function. Mover, these must be formatted and named using the following convention.
 
-## Structure Files
+## Initial Structure Files (Prior to any run)
 
 All starting structure files must live in the same directory, share a delimiter, and use integer names.
 
@@ -13,3 +13,12 @@ structures/
 ├── 1.gro
 ├── 2.gro
 └── 3.gro
+```
+**LAMMPS**
+
+```text
+structures/
+├── 1.in
+├── 2.in
+└── 3.in
+```
