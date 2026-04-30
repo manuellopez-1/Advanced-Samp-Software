@@ -18,6 +18,7 @@ The rate is calculated from the basin flux and the product of per-step transitio
 - Input Files (more info in [Input Files](docs/inputs.md))
 - Order Parameter Recording Stride
 - Total Number of steps
+- Output folder name
 
 **What it does:**
 
@@ -51,6 +52,7 @@ For more information on output files see [Output Files](docs/outputs.md)
 - Two order parameter values: λ_A and λ₀
 - Number of simulation steps
 - Order Parameter Recording Stride
+- Output folder name
 
 **What it does:**
 
@@ -121,3 +123,36 @@ This step is repeated with increasing milestones, each time seeding from the suc
 For more information on output files see [Output Files](docs/outputs.mdp)
 
 ## 4. Postprocessing
+
+**Purpose:** To cleanup run output files into a more interpretable form and enable usage in following runs.
+
+**Inputs**
+- Previous simulation type
+- Completed Run Directory
+- Output folder name
+- Root folder (if not exploration)
+
+**What it does**
+
+This script collapses individual array subdirectories into a global output folder. Moreover, it makes overall bookkeeping files, and maintains a global `grodirectory.txt` file that tracks the overall parent, child, grandchildren, etc. relationship between runs at each step. 
+
+**Outputs**
+- Output folder with all trajectories
+- Global `path.txt` file indicating the fate of all trajectories.
+- `grodirectory.txt` file tracking ascendency of all trajectories.
+
+
+## 5. Binary Export
+
+**Purpose:** Following the first exploration run all output position files are binary `.cpt` files. This script exports all binary files in a postprocessed folder to a readable format. 
+
+**Inputs**
+- Postprocessed directory
+- Output directory name
+
+**What it does**
+
+Exports position files to readable format.
+
+**Outputs**
+- Readable position files
