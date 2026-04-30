@@ -8,3 +8,8 @@ All starting structure files must live in the same directory, share a delimiter,
 
 **GROMACS**
 
+```text
+structures/
+├── 1.gro
+├── 2.gro
+└── 3.gro
