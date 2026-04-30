@@ -85,3 +85,14 @@ AdSamp modifies the targets and output paths in these sections on a per-trajecto
 
 > The order of lines within the `COMMITTOR` block is also checked at login.
 
+
+### Custom C++ Order Parameter (LAMMPS only)
+
+If PLUMED does not cover your use case, custom order parameters can be defined directly in C++. To add one:
+
+1. Create a new `.hpp` and `.cpp` file with your function
+2. Edit `orderparameterpicker.cpp` to include the header and call your function by name
+3. Add both files to the compile command
+4. Specify the function name when providing run inputs at login
+
+ See [Example Custom OP scripts](assets/samplefiles/customOPS/) for a working example.
