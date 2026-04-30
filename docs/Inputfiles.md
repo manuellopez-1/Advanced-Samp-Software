@@ -83,5 +83,5 @@ Your `plumed.dat` must contain the following sections. AdSamp checks for all thr
 
 AdSamp modifies the targets and output paths in these sections on a per-trajectory basis, so the structure must be uniform across runs. See [Example PLUMED script](assets/samplefiles/modelplumed.png) for a working example.
 
-
+> The order of lines within the `COMMITTOR` block is also checked at login.
 
