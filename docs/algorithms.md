@@ -15,7 +15,7 @@ The rate is calculated from the basin flux and the product of per-step transitio
 **Inputs:**
 - Timestep $\Delta t$
 - Order Parameter function $\lambda(x)$
-- Input Files (more info in [Input Files](/docs/inputs.md))
+- Input Files (more info in [Input Files](/docs/inputfiles.md))
 - Order Parameter Recording Stride
 - Total Number of steps
 - Output folder name
@@ -47,7 +47,7 @@ For more information on output files see [Output Files](docs/outputs.md)
 **Purpose:** Measure the flux of trajectories crossing from an accessible state $\lambda_A$ to a target milestone $\lambda_0$, recording each crossing as a starting configuration for the probabilistic step.
 
 **Inputs:**
-- A directory of starting structure files (see [Input Files](/docs/inputs.md))
+- A directory of starting structure files (see [Input Files](/docs/inputfiles.md))
 - Order Parameter function $\lambda(x)$
 - Two order parameter values: λ_A and λ₀
 - Number of simulation steps
@@ -90,7 +90,7 @@ For more information on output files see [Output Files](/docs/outputs.mdp)
 **Purpose:** Measure the probability of advancing from λ_{n-1} to λ_n against the probability of returning to λ_A. Repeated across successive milestones until the full transition is achieved.
 
 **Inputs:**
-- A directory of starting structure files (see [Input Files](/docs/inputs.md))
+- A directory of starting structure files (see [Input Files](/docs/inputfiles.md))
 - Order Parameter function $\lambda(x)$
 - Two order parameter values: λ_A and λ₀
 - Number of simulation steps
