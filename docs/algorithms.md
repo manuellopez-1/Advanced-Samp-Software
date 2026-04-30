@@ -36,9 +36,9 @@ A molecular dynamics simulation is initialized for each structure in the input d
 For more information on output files see [Output Files](docs/outputs.md)
 
 
-> Freezing functional groups can be achieved by modifying the `ffs.mdp` file (see [Sample ffs.mdp](docs/samplefiles/ffs.mdp)).
+> Freezing functional groups can be achieved by modifying the `ffs.mdp` file (see [Sample ffs.mdp](assets/samplefiles/ffs.mdp)).
 
-> Harmonic constraints on certain groups are set by modifying `.itp` and `.top` files, (see [harmonic constraints](docs/samplefiles/harmonicconstraints/))
+> Harmonic constraints on certain groups are set by modifying `.itp` and `.top` files, (see [harmonic constraints](assets/samplefiles/harmonicconstraints/))
 
 ---
 
