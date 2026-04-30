@@ -98,7 +98,7 @@ For more information on output files see [Output Files](docs/outputs.mdp)
 
 Each saved crossing from the previous step is reinitialized with a random velocity and run until it either reaches λ_n (success) or returns to λ_A (failure). The ratio of successes to total trials gives P(λ_n | λ_{n-1}).
 
-![Probabilistic simulation diagram](assets/probabilistic.png)
+![Probabilistic simulation diagram](/assets/probabilistic.png)
 
 This step is repeated with increasing milestones, each time seeding from the successes of the previous round, until the full transition is reached or the transition probability hits 100%.
 
