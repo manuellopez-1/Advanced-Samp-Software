@@ -43,7 +43,7 @@ For more information on output files see [Output Files](docs/outputs.mdp)
 
 ## 2. Basin
 
-**Purpose:** Measure the flux of trajectories crossing from an accessible state λ_A to a target milestone λ₀, recording each crossing as a starting configuration for the probabilistic step.
+**Purpose:** Measure the flux of trajectories crossing from an accessible state $\lambda_A$ to a target milestone $\lambda_0$, recording each crossing as a starting configuration for the probabilistic step.
 
 **Inputs:**
 - A directory of starting structure files
