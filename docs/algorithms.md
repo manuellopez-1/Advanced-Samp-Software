@@ -34,7 +34,10 @@ A molecular dynamics simulation is initialized for each structure in the input d
 - Tracking of used initial trajectory files
 For more information on output files see [Output Files](docs/outputs.mdp)
 
-> Freezing specific functional groups can be achieved by setting the appropriate run parameters in `ffs.mdp`. See [File Organization](file_organization.md) for details.
+
+> Freezing functional groups can be achieved by modifying the `ffs.mdp` file (see [Sample ffs.mdp](docs/samplefiles/ffs.mdp)).
+
+> Harmonic constraints on certain groups are set by modifying `.itp` and `.top` files, (see [harmonic constraints](docs/samplefiles/harmonicconstraints/))
 
 ---
 
