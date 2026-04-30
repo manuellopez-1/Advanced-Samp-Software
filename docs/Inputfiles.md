@@ -64,3 +64,10 @@ Timestep line
 > **Do not include a velocity line in the LAMMPS ffs.mdp.** Velocity initialization is handled internally by AdSamp and an explicit velocity line will cause issues.
 
 Sample `ffs.mdp` files may be found in [Sample ffs.mdp](docs/samplefiles/ffs.mdp) and [Sample LAMMPS ffs.mdp](docs/samplefiles/lammpsffs.mdp)
+
+
+## Order Parameter File
+
+All simulations run with AdSamp require an order parameter file. The two supported approaches are a PLUMED script (supported for GROMACS and LAMMPS) or a custom C++ function (LAMMPS only)
+
+
