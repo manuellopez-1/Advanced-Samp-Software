@@ -13,9 +13,11 @@ The rate is calculated from the basin flux and the product of per-step transitio
 **Purpose:** Relax a system or characterize how the order parameter evolves over time without recording crossing events.
 
 **Inputs:**
-- A directory of starting structure files
-- Number of steps to run
-- Recording interval (every N steps)
+- Timestep $\Delta t$
+- Order Parameter function $\lambda(x)$
+- Input Files (more info in [Input Files](docs/inputs.md))
+- Order Parameter Recording Stride
+- Total Number of steps
 
 **What it does:**
 
@@ -24,6 +26,13 @@ A molecular dynamics simulation is initialized for each structure in the input d
 **Outputs:**
 - Order parameter progression over time
 - Final configuration of each trajectory
+
+**Book Keeping Files**
+- Overall controller file relaying number of completed simulations over time
+- Individual Trajectory Completeness file
+- Tracking of input seeds
+- Tracking of used initial trajectory files
+For more information on output files see [Output Files](docs/outputs.mdp)
 
 > Freezing specific functional groups can be achieved by setting the appropriate run parameters in `ffs.mdp`. See [File Organization](file_organization.md) for details.
 
