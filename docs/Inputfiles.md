@@ -63,11 +63,26 @@ Timestep line
 
 > **Do not include a velocity line in the LAMMPS ffs.mdp.** Velocity initialization is handled internally by AdSamp and an explicit velocity line will cause issues.
 
-Sample `ffs.mdp` files may be found in [Sample ffs.mdp](docs/samplefiles/ffs.mdp) and [Sample LAMMPS ffs.mdp](docs/samplefiles/lammpsffs.mdp)
+Sample `ffs.mdp` files may be found in [Sample ffs.mdp](assets/samplefiles/ffs.mdp) and [Sample LAMMPS ffs.mdp](assets/samplefiles/lammpsffs.mdp)
 
 
 ## Order Parameter File
 
 All simulations run with AdSamp require an order parameter file. The two supported approaches are a PLUMED script (supported for GROMACS and LAMMPS) or a custom C++ function (LAMMPS only)
+
+### PLUMED (recommended)
+
+Your `plumed.dat` must contain the following sections. AdSamp checks for all three at login and will fail fast if any are missing or malformed.
+
+| Section | Purpose |
+|---|---|
+| Mathematical definition | Defines the scalar order parameter |
+| `COMMITTOR` | Allows the order parameter to trigger a simulation stop |
+| `PRINT` | Outputs the time-dependent parameter to a file |
+| `FLUSH` | Forces PLUMED to write output at a defined interval |
+
+AdSamp modifies the targets and output paths in these sections on a per-trajectory basis, so the structure must be uniform across runs. See `templates/plumed.dat` for a working example.
+
+![Example PLUMED script](assets/samplefiles/modelplumed.png)
 
 
