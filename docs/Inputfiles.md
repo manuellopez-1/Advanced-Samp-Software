@@ -40,4 +40,4 @@ structures/
 
 ## ffs.mdp
 
-All run parameters must be inserted into a file named `ffs.mdp` within the software's working directory. A sample `ffs.mdp` file may be found in 
+All run parameters must be inserted into a file named `ffs.mdp` within the software's working directory. A sample `ffs.mdp` file may be found in [Sample ffs.mdp](docs/samplefiles/ffs.mdp) and [Sample LAMMPS ffs.mdp](docs/samplefiles/lammpsffs.mdp)
