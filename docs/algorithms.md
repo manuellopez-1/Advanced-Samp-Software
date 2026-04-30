@@ -63,7 +63,7 @@ Each trajectory alternates between two run modes:
 
 This cycle repeats for the duration of the basin run.
 
-![Basin simulation diagram](assets/basininfo.png)
+![Basin simulation diagram](/assets/basininfo.png)
 
 **Outputs:**
 - Saved configurations at each $\lambda_0$ crossing
