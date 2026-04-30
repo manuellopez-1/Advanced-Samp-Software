@@ -87,7 +87,7 @@ For more information on output files see [Output Files](/docs/outputs.mdp)
 
 ## 3. Probabilistic
 
-**Purpose:** Measure the probability of advancing from λ_{n-1} to λ_n against the probability of returning to λ_A. Repeated across successive milestones until the full transition is achieved.
+**Purpose:** Measure the probability of advancing from $λ_{n-1}$ to $λ_n$ against the probability of returning to $λ_A$. Repeated across successive milestones until the full transition is achieved.
 
 **Inputs:**
 - A directory of starting structure files (see [Input Files](/docs/Inputfiles.md))
@@ -98,7 +98,7 @@ For more information on output files see [Output Files](/docs/outputs.mdp)
 
 **What it does:**
 
-Each saved crossing from the previous step is reinitialized with a random velocity and run until it either reaches λ_n (success) or returns to λ_A (failure). The ratio of successes to total trials gives P(λ_n | λ_{n-1}).
+Each saved crossing from the previous step is reinitialized with a random velocity and run until it either reaches $λ_n$ (success) or returns to $λ_A$ (failure). The ratio of successes to total trials gives $P(λ_n | λ_{n-1})$.
 
 ![Probabilistic simulation diagram](/assets/probabilistic.png)
 
