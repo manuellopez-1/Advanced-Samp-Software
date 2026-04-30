@@ -57,8 +57,8 @@ nstfout
 ### Required fields — LAMMPS
 
 ```
-# Temperature line (NVT or NPT)
-# Timestep line
+Temperature line (NVT or NPT)
+Timestep line
 ```
 
 > **Do not include a velocity line in the LAMMPS ffs.mdp.** Velocity initialization is handled internally by AdSamp and an explicit velocity line will cause issues.
