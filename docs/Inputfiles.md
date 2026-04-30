@@ -44,7 +44,7 @@ structures/
 All run parameters must be inserted into a file named `ffs.mdp` within the software's working directory. 
 ### Required fields — GROMACS
 
-\```
+```
 gen-seed
 gen-vel
 gen-temp
@@ -52,14 +52,14 @@ dt
 nstxout
 nstvout
 nstfout
-\```
+```
 
 ### Required fields — LAMMPS
 
-\```
+```
 # Temperature line (NVT or NPT)
 # Timestep line
-\```
+```
 
 > **Do not include a velocity line in the LAMMPS ffs.mdp.** Velocity initialization is handled internally by AdSamp and an explicit velocity line will cause issues.
 
