@@ -1,6 +1,6 @@
 # Algorithms
 
-AdSamp supports three simulation types that are run in sequence to complete a full Forward Flux Sampling workflow. Each builds on the outputs of the previous.
+AdSamp supports three simulation types that are run in sequence to complete a full Forward Flux Sampling workflow. Each builds on the outputs of the previous. Linking these three simulations is a postprocessing software that cleans up simulation outputs.
 
 $$T = \frac{\sum^{N}_{i=0} T_i/C_i}{\prod^{M}_{i=0} P(\lambda_{i+1}|\lambda_i)}$$
 
@@ -88,9 +88,11 @@ For more information on output files see [Output Files](docs/outputs.mdp)
 **Purpose:** Measure the probability of advancing from λ_{n-1} to λ_n against the probability of returning to λ_A. Repeated across successive milestones until the full transition is achieved.
 
 **Inputs:**
-- Saved crossing configurations from the previous basin or probabilistic step
-- λ_A (return boundary)
-- λ_n (target milestone)
+- A directory of starting structure files
+- Order Parameter function $\lambda(x)$
+- Two order parameter values: λ_A and λ₀
+- Number of simulation steps
+- Order Parameter Recording Stride
 
 **What it does:**
 
@@ -106,6 +108,16 @@ This step is repeated with increasing milestones, each time seeding from the suc
 - Each subsequent λ_n must exceed all successful crossing values from the previous step. Because crossings occur across a sampling window rather than at an exact value, the previous successes will be distributed around λ_{n-1} rather than sitting exactly on it.
 
 **Outputs:**
-- Saved configurations at each λ_n crossing (inputs for the next step)
-- Per-step transition probability P(λ_n | λ_{n-1})
-- Full rate T when combined with basin flux via the equation above
+- Saved configurations of all successful trajectories
+- Order parameter progression over time for each trajectory
+
+
+**Book Keeping Files**
+- Overall controller file relaying successes, failures, incompletes, average success length, average failure lenght, and instantaneous conditional probability.
+- Individual Trajectory Completeness file
+- Tracking of input velocity initialization seeds
+- Tracking of used initial trajectory files
+- Tracking of repeated iterations of same initial configuration
+For more information on output files see [Output Files](docs/outputs.mdp)
+
+## 4. Postprocessing
