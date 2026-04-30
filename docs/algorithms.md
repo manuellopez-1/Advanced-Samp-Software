@@ -98,7 +98,7 @@ For more information on output files see [Output Files](/docs/outputs.mdp)
 
 **What it does:**
 
-Each saved crossing from the previous step is reinitialized with a random velocity and run until it either reaches $λ_n$ (success) or returns to $λ_A$ (failure). The ratio of successes to total trials gives $P(λ_n | λ_{n-1})$.
+Each saved crossing from the previous step is reinitialized with a random velocity and run until it either reaches $\lambda_n$ (success) or returns to $\lambda_A$ (failure). The ratio of successes to total trials gives $P(\lambda_n | \lambda_{n-1})$.
 
 ![Probabilistic simulation diagram](/assets/probabilistic.png)
 
@@ -106,8 +106,8 @@ This step is repeated with increasing milestones, each time seeding from the suc
 
 **Choosing milestones:**
 
-- The first milestone λ₁ after the basin should be placed so that the transition probability is between 5% and 10%. Too high and individual steps contribute little; too low and the run becomes inefficient.
-- Each subsequent λ_n must exceed all successful crossing values from the previous step. Because crossings occur across a sampling window rather than at an exact value, the previous successes will be distributed around λ_{n-1} rather than sitting exactly on it.
+- The first milestone $\lambda_1$ after the basin should be placed so that the transition probability is between 5% and 10%. Too high and individual steps contribute little; too low and the run becomes inefficient.
+- Each subsequent $\lambda_n$ must exceed all successful crossing values from the previous step. Because crossings occur across a sampling window rather than at an exact value, the previous successes will be distributed around $\lambda_{n-1}$ rather than sitting exactly on it.
 
 **Outputs:**
 - Saved configurations of all successful trajectories
