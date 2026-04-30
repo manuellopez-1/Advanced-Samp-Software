@@ -83,6 +83,6 @@ Your `plumed.dat` must contain the following sections. AdSamp checks for all thr
 
 AdSamp modifies the targets and output paths in these sections on a per-trajectory basis, so the structure must be uniform across runs. See `templates/plumed.dat` for a working example.
 
-![Example PLUMED script](assets/samplefiles/modelplumed.png)
+[Example PLUMED script](assets/samplefiles/modelplumed.png)
 
 
