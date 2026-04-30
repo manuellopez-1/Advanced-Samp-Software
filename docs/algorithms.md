@@ -92,7 +92,7 @@ For more information on output files see [Output Files](/docs/outputs.mdp)
 **Inputs:**
 - A directory of starting structure files (see [Input Files](/docs/Inputfiles.md))
 - Order Parameter function $\lambda(x)$
-- Two order parameter values: λ_A and λ₀
+- Two order parameter values: $\lambda_A$ and $\lambda_0$
 - Number of simulation steps
 - Order Parameter Recording Stride
 
