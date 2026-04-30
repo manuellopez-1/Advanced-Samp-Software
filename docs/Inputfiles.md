@@ -6,5 +6,5 @@ This software requires a set of input files in order to function. Mover, these m
 
 All starting structure files must live in the same directory, share a delimiter, and use integer names.
 
-** GROMACS **
+**GROMACS**
 
