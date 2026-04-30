@@ -136,7 +136,7 @@ For more information on output files see [Output Files](docs/outputs.mdp)
 
 This script collapses individual array subdirectories into a global output folder. Moreover, it makes overall bookkeeping files, and maintains a global `grodirectory.txt` file that tracks the overall parent, child, grandchildren, etc. relationship between runs at each step. 
 
-![Basin simulation diagram](/assets/outputfileorganization.pdf)
+![Outputfile Organization](/assets/outputfileorganization.png)
 
 Note, this image indicates the organization of the simulation outputs prior to postprocessing, showing its distribution over an array of subdirectories.
 
