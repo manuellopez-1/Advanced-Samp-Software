@@ -37,3 +37,7 @@ structures/
 ├── 2.top
 └── 2.ndx
 ```
+
+## ffs.mdp
+
+All run parameters must be inserted into a file named `ffs.mdp` within the software's working directory. A sample `ffs.mdp` file may be found in 
