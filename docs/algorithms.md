@@ -15,7 +15,7 @@ The rate is calculated from the basin flux and the product of per-step transitio
 **Inputs:**
 - Timestep $\Delta t$
 - Order Parameter function $\lambda(x)$
-- Input Files (more info in [Input Files](docs/inputs.md))
+- Input Files (more info in [Input Files](/docs/inputs.md))
 - Order Parameter Recording Stride
 - Total Number of steps
 - Output folder name
@@ -36,9 +36,9 @@ A molecular dynamics simulation is initialized for each structure in the input d
 For more information on output files see [Output Files](docs/outputs.md)
 
 
-> Freezing functional groups can be achieved by modifying the `ffs.mdp` file (see [Sample ffs.mdp](assets/samplefiles/ffs.mdp)).
+> Freezing functional groups can be achieved by modifying the `ffs.mdp` file (see [Sample ffs.mdp](/assets/samplefiles/ffs.mdp)).
 
-> Harmonic constraints on certain groups are set by modifying `.itp` and `.top` files, (see [harmonic constraints](assets/samplefiles/harmonicconstraints/))
+> Harmonic constraints on certain groups are set by modifying `.itp` and `.top` files, (see [harmonic constraints](/assets/samplefiles/harmonicconstraints/))
 
 ---
 
@@ -47,7 +47,7 @@ For more information on output files see [Output Files](docs/outputs.md)
 **Purpose:** Measure the flux of trajectories crossing from an accessible state $\lambda_A$ to a target milestone $\lambda_0$, recording each crossing as a starting configuration for the probabilistic step.
 
 **Inputs:**
-- A directory of starting structure files (see [Input Files](docs/inputs.md))
+- A directory of starting structure files (see [Input Files](/docs/inputs.md))
 - Order Parameter function $\lambda(x)$
 - Two order parameter values: λ_A and λ₀
 - Number of simulation steps
@@ -81,7 +81,7 @@ This cycle repeats for the duration of the basin run.
 - Individual Trajectory Completeness file
 - Tracking of input seeds
 - Tracking of used initial trajectory files
-For more information on output files see [Output Files](docs/outputs.mdp)
+For more information on output files see [Output Files](/docs/outputs.mdp)
 
 ---
 
@@ -90,7 +90,7 @@ For more information on output files see [Output Files](docs/outputs.mdp)
 **Purpose:** Measure the probability of advancing from λ_{n-1} to λ_n against the probability of returning to λ_A. Repeated across successive milestones until the full transition is achieved.
 
 **Inputs:**
-- A directory of starting structure files (see [Input Files](docs/inputs.md))
+- A directory of starting structure files (see [Input Files](/docs/inputs.md))
 - Order Parameter function $\lambda(x)$
 - Two order parameter values: λ_A and λ₀
 - Number of simulation steps
@@ -120,7 +120,7 @@ This step is repeated with increasing milestones, each time seeding from the suc
 - Tracking of input velocity initialization seeds
 - Tracking of used initial trajectory files
 - Tracking of repeated iterations of same initial configuration
-For more information on output files see [Output Files](docs/outputs.mdp)
+For more information on output files see [Output Files](/docs/outputs.mdp)
 
 ## 4. Postprocessing
 
