@@ -1,12 +1,10 @@
 # HPC Usage
 
-AdSamp is designed to run on high performance computing clusters, including on scavenge partitions. Once a job is submitted it manages itself — requeueing after interruptions, monitoring progress, and notifying the user on completion without further input.
-
----
+AdSamp is designed to run on high performance computing clusters, including on scavenge partitions. Once a job is submitted it manages itself — requeueing after interruptions or timeouts, monitoring progress, and notifying the user on completion without further input.
 
 ## Scavenge Partitions
 
-Scavenge partitions are available on most HPC clusters and allow access to cores owned by other users when those cores are idle. When the owning user reclaims their cores, any jobs running on them are automatically cancelled. AdSamp handles this transparently:
+Scavenge partitions are available on most HPC clusters and allow access to cores owned by other users when those cores are idle. When the owning user reclaims their cores, any jobs running on them are automatically cancelled. AdSamp handles this with the following steps:
 
 1. The simulation saves a checkpoint at the point of interruption
 2. The job requeues itself on the cluster
@@ -14,7 +12,10 @@ Scavenge partitions are available on most HPC clusters and allow access to cores
 
 This allows simulations to be distributed across a large number of cores at all times without requiring a dedicated allocation.
 
----
+## Instantaneous Save
+
+Demonstrated by the previous section, this software relies on accurate checkpointing during interruption.  LAMMPS simulations may be used as pointer objects and so checkpointing can be done internally. GROMACS, on the other hand cannot be interracted with directly in the script, it may only exchange system calls. As such, to gurrantee accurate saving, the internal GROMACS code was modified to save a checkpoint automatically upon interruption, for more information see [Input Files](/docs/MDengines.md). 
+
 
 ## Job Structure
 
@@ -29,7 +30,6 @@ Both scripts have requeue and interruption handling enabled and will continue ru
 
 > **Submit only `AdSampControl.sh`.** Do not submit `AdSamp.sh` directly.
 
----
 
 ## Controller Behavior
 
@@ -39,7 +39,6 @@ The controller is smart about its own lifecycle:
 - If all worker jobs finish, the controller detects this and shuts itself down
 - Email notifications are sent when the job terminates
 
----
 
 ## Live Monitoring
 
@@ -51,7 +50,6 @@ Progress is written continuously to `Runinfo.txt` in the working directory. This
 | Basin | Number of crossings recorded per trajectory |
 | Probabilistic | Success, failure, or incomplete per trajectory |
 
----
 
 ## Continuous Monitoring with tmux
 
@@ -64,7 +62,6 @@ tmux new -s adsamp
 
 The tmux session will persist across disconnections and keep the controller running without interruption.
 
----
 
 ## Recommended Workflow
 
