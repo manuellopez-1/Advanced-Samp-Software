@@ -108,4 +108,4 @@ Postprocessing must be run before proceeding to the next simulation step. Runnin
 
 > Skipping postprocessing and proceeding directly to the next step will cause the run to fail.
 
-> Note, output structures are saved as binaries. To export readable files use the postprocessing binary export function (more info in [Input Files](/docs/algorithms.md))
+> Note, output structures are saved as binaries. To export readable files use the postprocessing binary export function (more info in [Algorithms](/docs/algorithms.md))
