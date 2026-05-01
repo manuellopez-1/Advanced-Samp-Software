@@ -100,6 +100,8 @@ Postprocessing must be run before proceeding to the next simulation step. Runnin
 
 1. Extracts colvar files, checkpoints, `path.txt`, and bookkeeping files from each numbered subdirectory into a single flat postprocessed directory
 2. Prompts for the previous run directory and generates `gronames.txt`, which maps each output structure to its initial configuration
+3. Appends 'folder_x' to bookkeeping files and moves them to the new folder
+4. Creates a global path file.
 
 `gronames.txt` is required for GROMACS continuation runs, since GROMACS needs the original input structure to initialize the next simulation. It is also useful for analysis when tracing a trajectory back to its starting point.
 
