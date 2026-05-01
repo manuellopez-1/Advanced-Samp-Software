@@ -19,8 +19,7 @@ Parallelism for GROMACS is handled differently. Passing all threads to the syste
 ### Modified GROMACS
 
 GROMACS was internally modified for use with AdSamp to fix checkpoint saving behavior. The standard approach — saving every few steps — was prohibitively slow when operating across many cores, as all threads would divide the MD work only to recombine frequently for writes. The modified version appends to GROMACS's internal interruption mechanism so that the current state is saved immediately upon any interruption signal, whether from an HPC cancellation, a timeout, or an order parameter being reached. This allows saves to occur far less frequently during normal operation without sacrificing accuracy.
-
-![GROMACS save speedup](assets/speedup.png)
+![Speedup](/assets/GROMACSMOD.png)
 
 See the [setup guide](../README.md) for instructions on installing the modified GROMACS build.
 
