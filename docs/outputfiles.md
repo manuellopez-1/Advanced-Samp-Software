@@ -98,11 +98,13 @@ Two additional files appear in each subdirectory when running a basin simulation
 
 Postprocessing must be run before proceeding to the next simulation step. Running `PostProcessing.sh` does the following:
 
-1. Extracts colvar files, checkpoints, `path.txt`, and bookkeeping files from each numbered subdirectory into a single flat postprocessed directory
-2. Prompts for the previous run directory and generates `gronames.txt`, which maps each output structure to its initial configuration
-3. Appends 'folder_x' to bookkeeping files and moves them to the new folder
-4. Creates a global path file.
+1. Appends folder_X to bookkeeping files and moves them to the postprocessed folder
+2. Concatenates `path.txt` files into a single global `path.txt`
+3. Moves all order parameter `Cpropername` to the new folder
+4. Renames all `.cpt` files to be used in proceeding runs (non repeating integer values)
+5. Records propername, new integer value (for successful trajectories) into a gronames.txt file that also tracks ascendancy of the trajectory (previous parent, child relationships)
 
 `gronames.txt` is required for GROMACS continuation runs, since GROMACS needs the original input structure to initialize the next simulation. It is also useful for analysis when tracing a trajectory back to its starting point.
 
 > Skipping postprocessing and proceeding directly to the next step will cause the run to fail.
+> Note, output structures are saved as binaries. To export readable files use the postprocessing binary export function 
