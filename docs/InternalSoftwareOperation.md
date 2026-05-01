@@ -36,7 +36,7 @@ If the user is not postprocessing, the flow continues to gather simulation param
 - email address
 - Runner partition
 - max runtime, formatting validated
-- core count, validated to be an integer
+- Runner core count, validated to be an integer
 
 **Simulation settings:**
 - MD step size in picoseconds, validated to be a positive float
@@ -63,7 +63,7 @@ If using PLUMED, `plumed.dat` in the working directory is checked for the follow
 
 ### Structure File Validation
 
-The user provides a file delimiter (including the `.`, e.g. `.gro`) and a structure file directory. The software checks that files of the given type exist in that directory and are named with integers. For GROMACS runs the delimiter must be either `.gro` or `.cpt` — any other value is rejected immediately.
+The user provides a file delimiter (including the `.`, e.g. `.gro`) and a structure file directory. The software checks that files of the given type exist in that directory and are named with integers. For GROMACS runs, the delimiter must be either `.gro` or `.cpt` — any other value is rejected immediately.
 
 If using GROMACS with variable atom counts, the user is asked whether topology is constant. If not, the software checks that matching `.top` and `.ndx` files exist alongside each structure file. If constant, it checks for `topol.top` and `index.ndx` in the working directory.
 
@@ -80,24 +80,27 @@ The user then specifies:
 - **Order parameter stride** — how often the OP is evaluated, must be greater than 0
 
 **Basin and Exploration additionally prompt for:**
-- Number of MD steps
-- Batch size (entering 0 sets batch size to the number of input files automatically)
+- Number of MD steps - validated to be a positive integer
+- Batch size (entering 0 sets batch size to the number of input files automatically) - validated to be a non negative integer
 
 **Probabilistic additionally prompts for:**
-- Batch size
-- Max crossings before interruption
+- Batch size -validated to be a positive integer
+- Max crossings before interruption -validated to be a positive integer
+- Trajectories per folder -validated to be a positive integer
 
 **Basin and Probabilistic additionally prompt for:**
-- λ_A (return boundary)
+- $\lambda_A$ (return boundary)
 - Goal lambda (target milestone)
 - These are re-prompted if equal, as equal bounds are invalid
-
-**Probabilistic additionally prompts for:**
-- Trajectories per folder
 
 ### Output
 
 Once all inputs are validated the login calls `writebash`, which generates `AdSampControl.sh` and `AdSamp.sh` populated with all collected parameters. The user then submits `AdSampControl.sh` to the scheduler to begin the run. 
+
+For more inromation regarding validity of inputs check [Input Files](/docs/Inputfiles.md)
+
+### Part 3 — Postprocessing login path
+
 
 ## Postprocessing
 
