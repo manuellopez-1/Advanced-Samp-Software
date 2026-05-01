@@ -28,7 +28,7 @@ workingdir/
         └── ...
 ```
 
-[Outputfile Organization](/assets/outputfileorganization.png)
+![Outputfile Organization](/assets/outputfileorganization.png)
 
 ---
 
