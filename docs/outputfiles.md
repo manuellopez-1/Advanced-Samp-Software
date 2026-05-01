@@ -107,4 +107,5 @@ Postprocessing must be run before proceeding to the next simulation step. Runnin
 `gronames.txt` is required for GROMACS continuation runs, since GROMACS needs the original input structure to initialize the next simulation. It is also useful for analysis when tracing a trajectory back to its starting point.
 
 > Skipping postprocessing and proceeding directly to the next step will cause the run to fail.
+
 > Note, output structures are saved as binaries. To export readable files use the postprocessing binary export function 
