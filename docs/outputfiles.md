@@ -68,7 +68,7 @@ The value of `status` depends on the simulation type:
 Every trajectory is assigned a unique tag called its propername, used to name all of its associated files. The structure is:
 
 ```plaintext
-folder_X_subfolder_X_initialconfiguration_X_iteration_X
+folder_X_subfolder_Y_initialconfiguration_Z_iteration_N
 ```
 
 This naming scheme guarantees no collisions within a run. The files carrying this tag are:
