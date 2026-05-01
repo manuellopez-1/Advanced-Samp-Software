@@ -89,7 +89,7 @@ Two additional files appear in each subdirectory when running a basin simulation
 
 | File | Contents |
 |---|---|
-| `basininfo.txt` | Current run mode per trajectory — whether the trajectory is advancing toward the goal milestone or resetting toward λ_A |
+| `basininfo.txt` | Current run mode per trajectory — whether the trajectory (1) is advancing toward the goal milestone or resetting toward $\lambda_A_$  (2)|
 | `basincrossingrecorded.txt` | Timestamps of each recorded crossing |
 
 ---
