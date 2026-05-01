@@ -50,7 +50,7 @@ These four files exist in each numbered subdirectory and are written to support 
 `path.txt` is the primary bookkeeping file read by the controller to update `Runinfo.txt`. Each line corresponds to one trajectory and contains the following fields:
 
 ```plaintext
-structure_file   iteration   propername   status
+structure_file,   iteration,   propername,   status
 ```
 
 The value of `status` depends on the simulation type:
