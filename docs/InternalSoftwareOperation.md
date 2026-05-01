@@ -126,16 +126,33 @@ This file maps probabilistic outputs back to their original structure names.
 
 Once all inputs are validated, the software creates either a `PostProcessing.sh` or `CPTExport.sh` bash script that the user may then submit.
 
-For more inromation regarding postprocessing check [Algorithms](/docs/algorithms.md)
 
 
 ## Postprocessing
 
-Run with non interruptable partition
+This run type is activated normally with a `PostProcessing.sh` bash script, created after interaction with the login mode. This script should not be run on an interruption prone scavenge partition. For more inromation regarding postprocessing check [Algorithms](/docs/algorithms.md).
 
 ## Binary Export
 
-Also run with non interruptable partition
+This mode is activated with a `CPTExport.sh` bash script, created after interaction with the login mode. This script should not be run on an interruption-prone scavenge partition, as an interruption mid-export will leave files in a partially converted state with no recovery mechanism.
+
+This script iterates through all `.cpt` files in a postprocessed directory and converts them to readable structure files using the following commands:
+
+### LAMMPS
+
+LAMMPS restart files are converted by initializing a LAMMPS object, reading the checkpoint, and performing a zero-step run with a dump command to write the structure to a readable `.in` file:
+
+1. read_restart cpt
+2. reset_timestep 0
+3. dump exportdump all atom 1 outputfolder/readablename
+4. run 0
+5. undump exportdump
+
+### GROMACS
+In Gromacs, an i.mdp file is first created, this has the necessary inputs for exporting the current step to a readable format. The gronames.txt file is then used to find the name of the original structurefile, topology file, and index file. Following this, the following commands are used.
+1. gmx_mpi grompp -f i.mdp -c initialstructurefile -r initialstructurefile -p topologyfile -n indexfile -o tprfile -t cptfile -maxwarn2
+2. gmx_mpi mdrun -s tprfile -cpi cptfile -rerun cptfile -noappend -o trrfile
+3. gmx_mpi trjconv -s tprfile -f trrfile -o outputname -center -pbc mol
 
 ## Controller
 
