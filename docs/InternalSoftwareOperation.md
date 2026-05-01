@@ -155,6 +155,7 @@ In Gromacs, an i.mdp file is first created, this has the necessary inputs for ex
 3. gmx_mpi trjconv -s tprfile -f trrfile -o outputname -center -pbc mol
 
 ## Controller
+Background information regarding the controller and worker scripts can be found in [MultiStep](/docs/MultiStepWorkflow.md). This script works by checking all path.txt files within the run directories ([OutputFiles](/docs/outputfiles.md) and pooling these to create a global summary. For probabilistic steps, the `Cpropername` files (see [OutputFiles](/docs/outputfiles.md) for naming conventions) are checked when successes and failures are marked in order to determine average path lengths. These are only checked for completed runs, thereby avoiding possible read/write issues. 
 
 ## Simulation Run Mode
 
