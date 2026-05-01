@@ -159,3 +159,5 @@ Background information regarding the controller and worker scripts can be found 
 
 ## Simulation Run Mode
 
+This runtype is the heart of the AdSamp package. The AdSamp controller activates an array of these jobs, each corresponding to a subdirectory and having unique files and trajectories.  These rely on molecular dynamics runs with varying termination criteria as per [Algorithms](/docs/algorithms.md), interruptions are handled using checkpointing, requeues, and restart commands. Information regarding the imbedded LAMMPS and GROMACS commands is given in [Engines](/docs/MDengines.md).
+
