@@ -20,11 +20,11 @@ The login flow is divided into two parts.
 
 The user is first prompted for environment information that applies to all run types:
 
-- **OpenMPI package name** — the module name as it appears on the cluster
-- **FFTW package name** — same
-- **GROMACS installation location** — validated by checking that a `bin/` subdirectory exists at the given path
-- **PLUMED installation location** — same check applied
-- **Postprocessing mode** — if yes, the login flow branches into either postprocessing or binary export mode and returns early (see those sections below)
+- OpenMPI package name — the module name as it appears on the cluster
+- FFTW package name — same
+- GROMACS installation location — validated by checking that a `bin/` subdirectory exists at the given path
+- PLUMED installation location — same check applied
+- Postprocessing mode — if yes, the login flow branches into either postprocessing or binary export mode and returns early (see those sections below)
 
 ### Part 2 — Run Configuration
 
@@ -32,10 +32,10 @@ If the user is not postprocessing, the flow continues to gather simulation param
 
 **Scheduler settings:**
 - Controller partition
-- max runtime, formatting validated
+- max runtime, validated with `D-HH:MM:SS` or `HH:MM:SS` formatting
 - email address
 - Runner partition
-- max runtime, formatting validated
+- Runner script runtime, validated with `D-HH:MM:SS` or `HH:MM:SS` formatting
 - Runner core count, validated to be an integer
 
 **Simulation settings:**
@@ -100,6 +100,33 @@ Once all inputs are validated the login calls `writebash`, which generates `AdSa
 For more inromation regarding validity of inputs check [Input Files](/docs/Inputfiles.md)
 
 ### Part 3 — Postprocessing login path
+
+If the user selects postprocessing mode during login, the normal simulation setup is skipped. The software instead prompts for information needed to generate postprocessing or binary export scripts.
+
+The user is first asked:
+
+- Postprocessing type, meaning whether exporting from binary or producing postprocessed folder
+- Partition
+- Max runtime, validated with `D-HH:MM:SS` or `HH:MM:SS` formatting
+- Email address
+
+### Standard Postprocessing
+
+If binary export is not selected, the user provides:
+
+- Most recent run type
+- Completed run directory, validated to exist
+- Postprocessing folder name, validated to not already exist
+
+For probabilistic runs, the user is also prompted for:
+
+- **Groname file** — validated to exist
+
+This file maps probabilistic outputs back to their original structure names.
+
+Once all inputs are validated, the software creates either a `PostProcessing.sh` or `CPTExport.sh` bash script that the user may then submit.
+
+For more inromation regarding postprocessing check [Algorithms](/docs/algorithms.md)
 
 
 ## Postprocessing
