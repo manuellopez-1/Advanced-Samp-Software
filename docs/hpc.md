@@ -64,5 +64,5 @@ The tmux session will persist across disconnections and keep the controller runn
 
 
 ## Postprocessing Scripts
-
+Scavenge compatibility is provided for exploration, basin, and probabilistic steps (for more information see [Input Files](/docs/algorithms.md)), however, postprocessing scripts are not interruption compatible, it is therefore not recommended to use the scavenge partition for these jobs. 
 
