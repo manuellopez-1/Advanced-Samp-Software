@@ -33,7 +33,7 @@ A molecular dynamics simulation is initialized for each structure in the input d
 - Individual Trajectory Completeness file
 - Tracking of input seeds
 - Tracking of used initial trajectory files
-For more information on output files see [Output Files](docs/outputfiles.md)
+For more information on output files see [Output Files](/docs/outputfiles.md)
 
 
 > Freezing functional groups can be achieved by modifying the `ffs.mdp` file (see [Sample ffs.mdp](/assets/samplefiles/Gromacsffs.mdp)).
