@@ -81,7 +81,7 @@ This cycle repeats for the duration of the basin run.
 - Individual Trajectory Completeness file
 - Tracking of input seeds
 - Tracking of used initial trajectory files
-For more information on output files see [Output Files](/docs/outputs.mdp)
+For more information on output files see [Output Files](/docs/outputfiles.md)
 
 ---
 
@@ -120,7 +120,7 @@ This step is repeated with increasing milestones, each time seeding from the suc
 - Tracking of input velocity initialization seeds
 - Tracking of used initial trajectory files
 - Tracking of repeated iterations of same initial configuration
-For more information on output files see [Output Files](/docs/outputs.mdp)
+For more information on output files see [Output Files](/docs/outputfiles.md)
 
 ## 4. Postprocessing
 
