@@ -1,0 +1,71 @@
+; Sample FFS file for GROMACS operation (potassium channel surrounded by frozen graphene plates).
+define                  = -DPOSRES -DPOSRES_FC_BB=50.0 -DPOSRES_FC_SC=0.0 -DPOSRES_FC_LIPID=0.0 -DDIHRES -DDIHRES_FC=0.0
+integrator              = md
+dt                      = 0.001
+nsteps                  = 10000000
+nstxout                 = 50000
+nstvout                 = 50000
+nstfout                 = 50000
+nstcalcenergy           = 50000
+nstenergy               = 50000
+nstlog                  = 50000
+
+; Bond parameters
+continuation    = no            ; apply constraints to the start configuration and reset shells
+constraints     = h-bonds       ; convert all bonds to constraints
+constraint-algorithm = lincs    ; holonomic constraints
+
+;
+cutoff-scheme           = Verlet
+nstlist                 = 20
+rlist                   = 1.2
+vdwtype                 = Cut-off
+vdw-modifier            = Force-switch
+rvdw_switch             = 1.0
+rvdw                    = 1.2
+coulombtype             = PME
+rcoulomb                = 1.2
+
+;
+pbc = xy                                ;Use periodic boundary conditions in x and y directions
+;rlist = 1.2                              ;[nm] Cut-off for making neighbor list (short-range forces)
+ewald-geometry = 3dc      ;for long-ranged 3d electrostatic calculations for a pseudo 2D system.
+nwall = 2                              ;places two walls along the z-axis at the two ends.
+wall-atomtype = CMW CMW ; the atom type constituting the walls
+wall-type = 12-6                  ;uses 6-12 LJ interactions for wall-system Van der Waals calculations
+wall-density = 100 100
+wall-r-linpot = -3
+wall-ewald-zfac = 3             ; Extra empty space for slab geometry calculation (reducing coulomb interaction)
+
+;
+tcoupl                  = v-rescale
+tc_grps                 = SOLU MEMB SOLV electrodes
+tau_t                   = 0.10 0.10 0.10 0.10
+ref_t                   = 300 300 300 0; reference temperature, one for each group, in K 
+;
+
+;
+pcoupl = No
+;pcoupl                  = Berendsen
+;pcoupltype              = semiisotropic
+;tau_p                   = 5.0
+;compressibility         = 4.5e-5  4.5e-5
+;ref_p                   = 1.0     1.0
+
+;refcoord_scaling        = com
+
+;constraints             = h-bonds
+;constraint_algorithm    = LINCS
+;
+nstcomm                 = 100
+comm_mode               = linear
+comm_grps               = SOLU_MEMB SOLV
+;
+gen-vel                 = yes
+gen-temp                = 300
+gen-seed                = 300
+
+; Freeze Sheets
+freezegrps      = electrodes
+freezedim       = Y Y Y
+
