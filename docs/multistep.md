@@ -20,10 +20,10 @@ A typical FFS simulation consists of three phases:
 
 Each phase follows the same interaction pattern:
 
-1. Run `./ManuelsAdvancedSampling` with no arguments to enter the login flow and generate job scripts
+1. Run `./AdSamp` with no arguments to enter the login flow and generate job scripts
 2. Submit `AdSampControl.sh` to the scheduler
 3. Monitor progress via `Runinfo.txt` or wait for the email notification
-4. Once the step completes, run `./ManuelsAdvancedSampling` with no arguments to enter the login flow. Specify postprocessing and submit `PostProcessing.sh` once generated.
+4. Once the step completes, run `./AdSamp` with no arguments to enter the login flow. Specify postprocessing and submit `PostProcessing.sh` once generated.
 5. Return to step 1 for the next phase, using the postprocessed outputs as inputs
 
 ---
