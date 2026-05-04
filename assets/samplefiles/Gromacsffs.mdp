@@ -11,9 +11,9 @@ nstenergy               = 50000
 nstlog                  = 50000
 
 ; Bond parameters
-continuation    = no            ; apply constraints to the start configuration and reset shells
-constraints     = h-bonds       ; convert all bonds to constraints
-constraint-algorithm = lincs    ; holonomic constraints
+continuation    = no            
+constraints     = h-bonds       
+constraint-algorithm = lincs   
 
 ;
 cutoff-scheme           = Verlet
@@ -27,21 +27,21 @@ coulombtype             = PME
 rcoulomb                = 1.2
 
 ;
-pbc = xy                                ;Use periodic boundary conditions in x and y directions
-;rlist = 1.2                              ;[nm] Cut-off for making neighbor list (short-range forces)
-ewald-geometry = 3dc      ;for long-ranged 3d electrostatic calculations for a pseudo 2D system.
-nwall = 2                              ;places two walls along the z-axis at the two ends.
-wall-atomtype = CMW CMW ; the atom type constituting the walls
-wall-type = 12-6                  ;uses 6-12 LJ interactions for wall-system Van der Waals calculations
+pbc = xy                               
+;rlist = 1.2                         
+ewald-geometry = 3dc     
+nwall = 2                           
+wall-atomtype = CMW CMW
+wall-type = 12-6               
 wall-density = 100 100
 wall-r-linpot = -3
-wall-ewald-zfac = 3             ; Extra empty space for slab geometry calculation (reducing coulomb interaction)
+wall-ewald-zfac = 3 
 
 ;
 tcoupl                  = v-rescale
 tc_grps                 = SOLU MEMB SOLV electrodes
 tau_t                   = 0.10 0.10 0.10 0.10
-ref_t                   = 300 300 300 0; reference temperature, one for each group, in K 
+ref_t                   = 300 300 300 0
 ;
 
 ;
