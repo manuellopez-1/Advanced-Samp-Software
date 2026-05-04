@@ -29,6 +29,7 @@ See [Algorithms](docs/algorithms.md) for a detailed description of each phase.
 
 > AdSamp requires a modified build of GROMACS that extends its internal interruption mechanism to save checkpoints immediately upon any interruption signal. This is required for accurate FFS saves and provides a significant speedup over frequent periodic saves. See [MD Engines](docs/MDengines.md) for details.
 
+> See [Custom Gromacs Installation](ModifiedGromacs/Installation.md) for installation information.
 ---
 
 ## Installation
@@ -48,7 +49,6 @@ All further interactions with the software use:
 ```plaintext
 ./AdSamp
 ```
-See [Custom Gromacs Installation](ModifiedGromacs/Installation.md) for the complete multi-step workflow.
 
 ---
 
