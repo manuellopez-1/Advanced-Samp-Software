@@ -48,6 +48,7 @@ All further interactions with the software use:
 ```plaintext
 ./AdSamp
 ```
+See [Custom Gromacs Installation](ModifiedGromacs/Installation.md) for the complete multi-step workflow.
 
 ---
 
