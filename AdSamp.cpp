@@ -235,7 +235,8 @@ void RUNGMX(std::string nom, int tipo, Context* ctx ){
     }
     int numcores = slurm_total_tasks();
     std::cout<<"cores"<<numcores<<std::endl;
-    std::string cmd = "srun --overlap --overcommit --cpu-bind=none --mem-bind=none --mem=0 -n " +std::to_string(numcores) + " gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
+    //std::string cmd = "srun --overlap --overcommit --cpu-bind=none --mem-bind=none --mem=0 -n " +std::to_string(numcores) + " gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
+    std::string cmd = "srun --overlap --overcommit --cpu-bind=cores --mem-bind=local --exact --mem=0 -n " +std::to_string(numcores) + " gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
     if (tipo ==1){
         cmd += " -cpi " + nom + ".cpt";
     }
