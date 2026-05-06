@@ -237,7 +237,8 @@ void RUNGMX(std::string nom, int tipo, Context* ctx ){
     std::cout<<"cores"<<numcores<<std::endl;
     //std::string cmd = "srun --overlap --overcommit --cpu-bind=none --mem-bind=none --mem=0 -n " +std::to_string(numcores) + " gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
     //std::string cmd = "srun --overlap --overcommit --cpu-bind=cores --mem-bind=local --exact --mem=0 -n " +std::to_string(numcores) + " gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
-    std::string cmd = "srun --overlap --cpu-bind=cores --mem-bind=local --exact --mem=0 -n " +std::to_string(numcores) + " gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
+    //std::string cmd = "srun --overlap --cpu-bind=cores --mem-bind=local --exact --mem=0 -n " +std::to_string(numcores) + " gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
+    std::string cmd = "srun --cpu-bind=none -n " +std::to_string(numcores) + " gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
     if (tipo ==1){
         cmd += " -cpi " + nom + ".cpt";
     }
@@ -1745,7 +1746,12 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     individual<<"module load "<<FFTW<<std::endl;
     individual<<"export PATH=$PATH:/"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
     individual<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
-    individual << "srun --cpu-bind=none -n " << cores<< " ./ManuelsAdvancedSampling "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<<"${SLURM_ARRAY_TASK_ID} "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
+    if (MDengine ==0){
+        individual << "srun --cpu-bind=none -n " << cores<< " ./ManuelsAdvancedSampling "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<<"${SLURM_ARRAY_TASK_ID} "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
+    }
+    else{
+        individual << "./ManuelsAdvancedSampling "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<<"${SLURM_ARRAY_TASK_ID} "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
+    }
     individual<<"wait"<<std::endl;
     individual.close();
 }
@@ -2775,8 +2781,8 @@ int main(int argc, char** argv) { //okay here we get the inputs and decide the r
             MPI_Init(&argc, &argv);
             ctx = std::make_unique<ParallelContext>(MPI_COMM_WORLD);
         }else{
-            MPI_Init(&argc, &argv);
-            ctx = std::make_unique<ParallelContext>(MPI_COMM_WORLD);
+            //MPI_Init(&argc, &argv);
+            ctx = std::make_unique<SerialContext>();
         }
 
         std::this_thread::sleep_for(std::chrono::seconds(60)); //this is for requeue to avoid double running a process, 
