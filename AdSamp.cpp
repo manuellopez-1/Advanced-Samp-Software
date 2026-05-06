@@ -977,7 +977,7 @@ void RecordCrossing(std::string folder, double time, int crossings){
 
 }
 
-void pathedit(std::string newfolder,int& runtype, int direction, double leftbound, double rightbound,int& weshouldstop, long long nsteps, double deltaT){
+void pathedit(std::string newfolder,int& runtype, int direction, double leftbound, double rightbound,int& weshouldstop, long long nsteps, double deltaT, int targetline ){
     std::vector<std::string> pathLines;
     std::string propername;
     std::vector<std::string> pathentries;
@@ -986,11 +986,16 @@ void pathedit(std::string newfolder,int& runtype, int direction, double leftboun
     double c;
     std::string Line;
     int previouscrossings;
+    int currentline=-1;
     while (std::getline(pathFile, Line)){
+        currentline++;
         if (runtype==3){ //ffs operation
             pathentries = pathlinereader(Line);
             if (pathentries.back().find("success")!= std::string::npos || pathentries.back().find("failure")!= std::string::npos){
                 pathLines.push_back(Line); //was already marked as a finished simulation, no need to check further
+                if (currentline==targetline){
+                    weshouldstop = 0;
+                }
             }else{
                 propername =pathentries[2];
                 std::string Colvar = newfolder + "/C" + propername;
@@ -1000,10 +1005,14 @@ void pathedit(std::string newfolder,int& runtype, int direction, double leftboun
                     c= result.second;
                     if (c*direction>rightbound*direction){
                         pathLines.push_back( pathentries[0] + ", "+pathentries[1] + ", " + pathentries[2] + ", success");
-                        weshouldstop = 0;
+                        if (currentline==targetline){
+                            weshouldstop = 0;
+                        }
                     }else if (c*direction<leftbound*direction){
                         pathLines.push_back( pathentries[0] + ", "+pathentries[1] + ", " + pathentries[2] + ", failure");
-                        weshouldstop = 0;
+                        if (currentline==targetline){
+                            weshouldstop = 0;
+                        }
                     }else{
                         pathLines.push_back( pathentries[0] + ", "+pathentries[1] + ", " + pathentries[2] + ", incomplete");
                     }
@@ -1098,7 +1107,7 @@ void DeleteExtraFiles(std::string newfolder, int runtype){
     }
 }
 
-void CleanUp(std::string newfolder, int& runtype, int direction, double leftbound, double rightbound,int& weshouldstop, long long nsteps, double strides, double deltaT, int calculator , int usePLMD){
+void CleanUp(std::string newfolder, int& runtype, int direction, double leftbound, double rightbound,int& weshouldstop, long long nsteps, double strides, double deltaT, int calculator , int usePLMD, int targetline){
     double PLMDSTEPSIZE = strides*deltaT;
     DeleteExtraFiles(newfolder, runtype);
     int feedintoRC = 2*usePLMD-calculator; //corelary to how many lines should skip when appending RC, gromacs with PLMD skip 1 line, lammps with plumed skip 2, lammps without skip nothing
@@ -1114,7 +1123,7 @@ void CleanUp(std::string newfolder, int& runtype, int direction, double leftboun
         deleteall(newfolder); //there's some issue if no colvar
         weshouldstop =2; //this will cause termination making it so the script doesn't requeue
     }else{
-        pathedit(newfolder, runtype, direction, leftbound, rightbound, weshouldstop, nsteps,deltaT);
+        pathedit(newfolder, runtype, direction, leftbound, rightbound, weshouldstop, nsteps,deltaT, targetline);
     }
 }
 
@@ -1140,7 +1149,9 @@ void TerminationStall(int var){
         std::cout<< "Run Initiation Failure"<<std::endl; //note to self create error codes
         std::exit(EXIT_FAILURE); //in case colvars aren't developing
     }
-    std::cout<<"Sleeping"<<std::endl;
+    if (var==1){
+        std::cout<<"Sleeping"<<std::endl;
+    }
     while (var == 1) {
         std::this_thread::sleep_for(std::chrono::seconds(60));
     }
@@ -1196,7 +1207,7 @@ void Basin(Context* ctx,std::string Outputfolder, std::string runid, double left
     int trashvariable = 0; //idk colaboratory with cleanup
     if (std::filesystem::exists(Path)){
         if (rank ==0){
-            CleanUp(newfolder, runtype, direction, leftbound, rightbound, trashvariable,nsteps, strides,deltaT,calculator, usePLMD);
+            CleanUp(newfolder, runtype, direction, leftbound, rightbound, trashvariable,nsteps, strides,deltaT,calculator, usePLMD,0);
         }
     }
     ctx->barrier(); 
@@ -1221,7 +1232,7 @@ void Basin(Context* ctx,std::string Outputfolder, std::string runid, double left
         lmp=firstgo(ctx,structurefiles, Outputfolder, runid, leftbound, rightbound, runtype, direction,CUSTOMOP,op.get(),1,nsteps,trail, rootdirectory, calculator, strides,deltaT,constanttopology); //so I know it's kind of weird to have this be a function but it's because I need to do this twice, saves on number of lines
         //now clean the files
         if (rank ==0){
-            CleanUp(newfolder, runtype, direction, leftbound, rightbound, weshouldstop,nsteps, strides,deltaT,calculator, usePLMD);
+            CleanUp(newfolder, runtype, direction, leftbound, rightbound, weshouldstop,nsteps, strides,deltaT,calculator, usePLMD,0);
         }
         ctx->barrier();
         ctx->bcast_int(weshouldstop, 0);
@@ -1287,7 +1298,7 @@ void Basin(Context* ctx,std::string Outputfolder, std::string runid, double left
             lmp=firstgo(ctx,structurefiles, Outputfolder, runid, leftbound, rightbound, runtype, direction,CUSTOMOP,op.get(),1,nsteps,trail, rootdirectory, calculator, strides,deltaT,constanttopology);
         }
         if (rank ==0){
-            CleanUp(newfolder, runtype, direction, leftbound, rightbound, weshouldstop,nsteps, strides,deltaT,calculator, usePLMD);
+            CleanUp(newfolder, runtype, direction, leftbound, rightbound, weshouldstop,nsteps, strides,deltaT,calculator, usePLMD,0);
             auto result = Runtimechecker(newfolder);
             runtime   = result.first/deltaT;
             propername = result.second;
@@ -1336,7 +1347,7 @@ void Probabilistic(Context* ctx,std::string Outputfolder, std::string runid, dou
     int trashvariable = 0;
     if (std::filesystem::exists(Path)){
         if (rank ==0){
-            CleanUp(newfolder, runtype, direction, leftbound, rightbound, trashvariable,nsteps, strides,deltaT,calculator, usePLMD);
+            CleanUp(newfolder, runtype, direction, leftbound, rightbound, trashvariable,nsteps, strides,deltaT,calculator, usePLMD,0);
         }
     }
     ctx->barrier();
@@ -1361,7 +1372,7 @@ void Probabilistic(Context* ctx,std::string Outputfolder, std::string runid, dou
     for (int iteration=pathlines; iteration<desiredtrajectories; iteration++){
         lmp=firstgo(ctx,structurefiles, Outputfolder, runid, leftbound, rightbound, 3 , direction, CUSTOMOP, op.get(),iteration,nsteps,trail, rootdirectory, calculator, strides,deltaT,constanttopology); //this will attempt to complete FFS from first launch for each of the desired trajectories
         if (rank ==0){
-            CleanUp(newfolder, runtype, direction, leftbound, rightbound, weshouldstop,nsteps, strides,deltaT,calculator, usePLMD);
+            CleanUp(newfolder, runtype, direction, leftbound, rightbound, weshouldstop,nsteps, strides,deltaT,calculator, usePLMD, iteration);
         }
         ctx->barrier();
         ctx->bcast_int(weshouldstop, 0); //if it weren't for the scavenge partition we could probably leave it at this
@@ -1443,7 +1454,7 @@ void Probabilistic(Context* ctx,std::string Outputfolder, std::string runid, dou
             }
             //now clean
             if (rank ==0){
-                CleanUp(newfolder, runtype, direction, leftbound, rightbound, weshouldstop,nsteps, strides,deltaT,calculator, usePLMD);
+                CleanUp(newfolder, runtype, direction, leftbound, rightbound, weshouldstop,nsteps, strides,deltaT,calculator, usePLMD,trajectory);
             }
             ctx->barrier();
             ctx->bcast_int(weshouldstop, 0);
@@ -1489,7 +1500,7 @@ void Exploration(Context* ctx, std::string Outputfolder, std::string runid, std:
     int trashvariable = 0; //idk colaboratory with cleanup
     if (std::filesystem::exists(Path)){
         if (rank ==0){
-            CleanUp(newfolder, runtype, direction, leftbound, rightbound, trashvariable,nsteps, strides,deltaT,calculator, usePLMD); 
+            CleanUp(newfolder, runtype, direction, leftbound, rightbound, trashvariable,nsteps, strides,deltaT,calculator, usePLMD,0); 
         }
     }
     ctx->barrier(); //I dont think anything must be communicated here
@@ -1514,7 +1525,7 @@ void Exploration(Context* ctx, std::string Outputfolder, std::string runid, std:
         lmp=firstgo(ctx,structurefiles, Outputfolder, runid, leftbound, rightbound, runtype, direction,CUSTOMOP,op.get(),1,nsteps,trail, rootdirectory, calculator, strides,deltaT,constanttopology); //so I know it's kind of weird to have this be a function but it's because I need to do this twice, saves on number of lines
         //now clean the files
         if (rank ==0){
-            CleanUp(newfolder, runtype, direction, leftbound, rightbound, weshouldstop,nsteps, strides,deltaT,calculator, usePLMD);
+            CleanUp(newfolder, runtype, direction, leftbound, rightbound, weshouldstop,nsteps, strides,deltaT,calculator, usePLMD,0);
         }
         ctx->barrier();
         ctx->bcast_int(weshouldstop, 0);
@@ -1577,7 +1588,7 @@ void Exploration(Context* ctx, std::string Outputfolder, std::string runid, std:
             lmp=firstgo(ctx,structurefiles, Outputfolder, runid, leftbound, rightbound, runtype, direction,CUSTOMOP,op.get(),1,nsteps,trail, rootdirectory, calculator, strides,deltaT,constanttopology);
         }
         if (rank ==0){
-            CleanUp(newfolder, runtype, direction, leftbound, rightbound, weshouldstop,nsteps, strides,deltaT,calculator, usePLMD);
+            CleanUp(newfolder, runtype, direction, leftbound, rightbound, weshouldstop,nsteps, strides,deltaT,calculator, usePLMD,0);
             auto result = Runtimechecker(newfolder);
             runtime   = result.first/deltaT;
             propername = result.second;
