@@ -1693,7 +1693,7 @@ std::string safe(const std::string &s) {
 
 //this function makes the bash scripts
 void writebash(std::string CPartition, std::string Cruntime,std::string email, std::string RPartition, std::string Rruntime, int cores, int MDengine, std::string CUSTOMOP, std::string Outputfolder, int runtype, int stride, std::string Delimeter, std::string structurefilesloc, std::string rootdirectory, long long nsteps, int batchsize, int perfoldertrajectories, double leftbound, double rightbound, int maxcrossings,std::string gromacslocation, std::string plumedlocation, std::string OPENMPI, std::string FFTW,double deltaT, int constanttopology){
-    std::string commandline ="srun -n 1 ./ManuelsAdvancedSampling " +std::to_string(runtype) + " "+ safe(Outputfolder) + " "+ std::to_string(leftbound) + " "+ std::to_string(rightbound) +" "+ std::to_string(maxcrossings);
+    std::string commandline ="srun -n 1 ./AdSamp " +std::to_string(runtype) + " "+ safe(Outputfolder) + " "+ std::to_string(leftbound) + " "+ std::to_string(rightbound) +" "+ std::to_string(maxcrossings);
     //adjust to also pass the batchsize and runs per trajectory
     std::ofstream controller("AdSampControl.sh");
     controller<<"#!/bin/bash"<<std::endl;
@@ -1747,10 +1747,10 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     individual<<"export PATH=$PATH:/"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
     individual<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
     if (MDengine ==0){
-        individual << "srun --cpu-bind=none -n " << cores<< " ./ManuelsAdvancedSampling "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<<"${SLURM_ARRAY_TASK_ID} "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
+        individual << "srun --cpu-bind=none -n " << cores<< " ./AdSamp "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<<"${SLURM_ARRAY_TASK_ID} "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
     }
     else{
-        individual << "./ManuelsAdvancedSampling "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<<"${SLURM_ARRAY_TASK_ID} "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
+        individual << "./AdSamp "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<<"${SLURM_ARRAY_TASK_ID} "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
     }
     individual<<"wait"<<std::endl;
     individual.close();
@@ -1831,7 +1831,7 @@ int gronamechecker(std::string rootdirectory, std::string structurefiles,std::st
 
 }
 void processingbash(std::string OPENMPI, std::string FFTW, std::string gromacslocation, std::string plumedlocation, std::string partition, std::string runtime, std::string email, int runtype, std::string runfolder, std::string newfoldername, std::string prior ){
-    std::string commandline ="srun -n 1 ./ManuelsAdvancedSampling " +safe(runfolder) + " "+ safe(newfoldername) + " "+ safe(prior) + " "+ std::to_string(runtype);
+    std::string commandline ="srun -n 1 ./AdSamp " +safe(runfolder) + " "+ safe(newfoldername) + " "+ safe(prior) + " "+ std::to_string(runtype);
     //adjust to also pass the batchsize and runs per trajectory
     std::ofstream controller("PostProcessing.sh");
     controller<<"#!/bin/bash"<<std::endl;
@@ -1883,7 +1883,7 @@ void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromac
     controller<<"module load "<<FFTW<<std::endl;
     controller<<"export PATH=$PATH:/"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
     controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
-    std::string commandline ="srun -n 1 ./ManuelsAdvancedSampling CONVERT " +safe(postprocessedfolder) + " "+ safe(rootdirectory) + " "+ safe(newfoldername) + " "+ std::to_string(MDEngine) + " " + std::to_string(constanttopology); //add in an extra input so not same length as controller
+    std::string commandline ="srun -n 1 ./AdSamp CONVERT " +safe(postprocessedfolder) + " "+ safe(rootdirectory) + " "+ safe(newfoldername) + " "+ std::to_string(MDEngine) + " " + std::to_string(constanttopology); //add in an extra input so not same length as controller
     controller<<commandline<<std::endl;
 }
 
