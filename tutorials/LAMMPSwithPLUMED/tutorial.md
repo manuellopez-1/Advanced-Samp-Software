@@ -71,3 +71,6 @@ To begin postprocessing, run `./AdSamp` to begin login interaction. Input the fo
 12. Postprocessing folder name: | ProcessedExploration
 
 Once these inptus have been given, a file called `PostProcessing.sh` will be created, submit it using `sbatch PostProcessing.sh` to develop a postprocessed folder, for more information on this process read [Algorithms](/docs/algorithms.md).
+
+## Basin Simulation
+
