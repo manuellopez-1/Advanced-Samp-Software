@@ -1172,7 +1172,6 @@ void Basin(Context* ctx,std::string Outputfolder, std::string runid, double left
         op = createOrderParameter(CUSTOMOP); //alright this should let me take an input string and use it to map to an op calculating function
     }
     //make non principle threads idle until lammps step
-    std::cout<<"MADE OP"<<std::endl;
 
 
     // let's break down the proccess of running a basin code into steps, I have a pretty good workflow in gromacs will mimc
@@ -1202,7 +1201,6 @@ void Basin(Context* ctx,std::string Outputfolder, std::string runid, double left
         ctx->barrier();
         ctx->bcast_int(runtype, 0);
     }
-    std::cout<<"MADE Folder"<<std::endl;
     int direction =rightbound>leftbound?1:-1; //pos 1 for increasing, neg one for decreasing
     
     std::string Path =newfolder+ "/path.txt"; //preemptive edits to files in case of interruptions
@@ -1214,7 +1212,6 @@ void Basin(Context* ctx,std::string Outputfolder, std::string runid, double left
     }
     ctx->barrier(); 
     ctx->bcast_int(runtype, 0);
-    std::cout<<"Cleaned Up"<<std::endl;
     //check if is first launch
     int pathlines = 0;
     std::string Line;
@@ -1334,7 +1331,6 @@ void Probabilistic(Context* ctx,std::string Outputfolder, std::string runid, dou
         op = createOrderParameter(CUSTOMOP) ;//alright this should let me take an input string and use it to map to an op calculating function
     }
     //make non principle threads idle until lammps step
-    std::cout<<"made op"<<std::endl;
 
     std::string newfolder = Outputfolder +"/" + runid ;
     if (!std::filesystem::exists(newfolder)){
@@ -1343,7 +1339,6 @@ void Probabilistic(Context* ctx,std::string Outputfolder, std::string runid, dou
         }
         ctx->barrier();
     }
-    std::cout<<"made folder"<<std::endl;
     int direction =rightbound>leftbound?1:-1; //pos 1 for increasing, neg one for decreasing
     std::string Path =newfolder+ "/path.txt"; //preemptive edits to files in case of interruptions
     int trashvariable = 0;
@@ -1353,7 +1348,6 @@ void Probabilistic(Context* ctx,std::string Outputfolder, std::string runid, dou
         }
     }
     ctx->barrier();
-    std::cout<<"first clean"<<std::endl;
     
     //check if is first launch for any
     int pathlines = 0;
@@ -1369,7 +1363,6 @@ void Probabilistic(Context* ctx,std::string Outputfolder, std::string runid, dou
     }
     ctx->barrier();
     ctx->bcast_int(pathlines, 0);
-    std::cout<<"read path"<<std::endl;
     int weshouldstop = 0; 
     for (int iteration=pathlines; iteration<desiredtrajectories; iteration++){
         lmp=firstgo(ctx,structurefiles, Outputfolder, runid, leftbound, rightbound, 3 , direction, CUSTOMOP, op.get(),iteration,nsteps,trail, rootdirectory, calculator, strides,deltaT,constanttopology); //this will attempt to complete FFS from first launch for each of the desired trajectories
@@ -1486,7 +1479,6 @@ void Exploration(Context* ctx, std::string Outputfolder, std::string runid, std:
     if (usePLMD ==0){
         op = createOrderParameter(CUSTOMOP); //alright this should let me take an input string and use it to map to an op calculating function
     }
-    std::cout<<"made op"<<std::endl;
     //make non principle threads idle until lammps step
 
     //this is going to be basically the basin exploration but with no lb, rb
@@ -1497,7 +1489,6 @@ void Exploration(Context* ctx, std::string Outputfolder, std::string runid, std:
         }
         ctx->barrier();
     }    
-    std::cout<<"made subfolder"<<std::endl;
     std::string Path =newfolder+ "/path.txt"; //preemptive edits to files in case of interruptions
     int trashvariable = 0; //idk colaboratory with cleanup
     if (std::filesystem::exists(Path)){
@@ -1506,7 +1497,6 @@ void Exploration(Context* ctx, std::string Outputfolder, std::string runid, std:
         }
     }
     ctx->barrier(); //I dont think anything must be communicated here
-    std::cout<<"fist cleanup"<<std::endl;
     //check if is first launch
     int pathlines = 0;
     std::string Line;
@@ -1521,7 +1511,6 @@ void Exploration(Context* ctx, std::string Outputfolder, std::string runid, std:
     }
     ctx->barrier();
     ctx->bcast_int(pathlines, 0);
-    std::cout<<"read path"<<std::endl;
     int weshouldstop =0;
     if (pathlines==0){//okay now the script for first launch basin
         lmp=firstgo(ctx,structurefiles, Outputfolder, runid, leftbound, rightbound, runtype, direction,CUSTOMOP,op.get(),1,nsteps,trail, rootdirectory, calculator, strides,deltaT,constanttopology); //so I know it's kind of weird to have this be a function but it's because I need to do this twice, saves on number of lines
@@ -2760,7 +2749,6 @@ void convertfromCPT(Context* ctx,std::string processedfolder, std::string rootdi
 
 int main(int argc, char** argv) { //okay here we get the inputs and decide the run type and set up the level of parallelism
     if (argc== 16){
-        std::cout<<"assuming this is a run script"<<std::endl;
         int MDenginetype = std::stoi(argv[1]);
         int simtype = std::stoi(argv[2]);
         std::string Outputfolder = argv[3];
@@ -2794,11 +2782,9 @@ int main(int argc, char** argv) { //okay here we get the inputs and decide the r
             Exploration(ctx.get(), Outputfolder, runid, structurefiles, trail, nsteps, CUSTOMOP, rootdirectory, MDenginetype, strides,deltaT,constanttopology);
         }
     }else if( argc==1){
-        std::cout<<"assuming this is a login"<<std::endl;
         Login();
     }
     else if(argc ==6){
-        std::cout<<"assuming this is a controller script"<<std::endl;
         int simtype = std::stoi(argv[1]);
         std::string outputfolder = argv[2];
         double leftbound = std::stod(argv[3]);
@@ -2806,7 +2792,6 @@ int main(int argc, char** argv) { //okay here we get the inputs and decide the r
         int maxcrossings = std::stoi(argv[5]);
         controller(simtype, outputfolder, leftbound, rightbound, maxcrossings);
     }else if (argc==5){
-        std::cout<<"assuming this is a postprocessing script"<<std::endl;
         std::string RUNFOLDER = argv[1];
         std::string NEWFOLDER = argv[2];
         std::string prior = argv[3];
@@ -2816,7 +2801,6 @@ int main(int argc, char** argv) { //okay here we get the inputs and decide the r
         std::unique_ptr<Context> ctx; //initialize
         MPI_Init(&argc, &argv);
         ctx = std::make_unique<SerialContext>(); // single runner
-        std::cout<<"assuming this is a cpt export script"<<std::endl;
         std::string processedfolder = argv[2]; //skip first one it's meaningless to offset from controller
         std::string rootdirectory = argv[3];
         std::string outputfolder = argv[4];
