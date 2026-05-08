@@ -10,22 +10,22 @@ Each numbered subdirectory corresponds to the batch array task ID of the job wor
 
 ```plaintext
 workingdir/
-├── Runinfo.txt
-└── outputdir/
-    ├── 1/
-    │   ├── seedvalues
-    │   ├── outputfiles
-    │   ├── iterationtracker
-    │   ├── possibleoutputs
-    │   ├── path.txt
-    │   ├── basininfo.txt (basin runs only)
-    │   ├── basincrossingrecorded.txt (basin runs only)
-    │   ├── Cfolder_X_subfolder_1_initialconfiguration_Y_iteration_Z (Time Dependent Order Parameter)
-    │   ├── folder_X_subfolder_1_initialconfiguration_Y_iteration_Z.dat (Modified Plumed File)
-    │   ├── folder_X_subfolder_1_initialconfiguration_Y_iteration_Z.mdp (Modified mdp File)
-    │   └── folder_X_subfolder_1_initialconfiguration_Y_iteration_Z.cpt
-    └── 2/
-        └── ...
+- Runinfo.txt
+- outputdir/
+  - 1/
+    - seedvalues
+    - outputfiles
+    - iterationtracker
+    - possibleoutputs
+    - path.txt
+    - basininfo.txt (basin runs only)
+    - basincrossingrecorded.txt (basin runs only)
+    - Cfolder_X_subfolder_1_initialconfiguration_Y_iteration_Z (Time Dependent Order Parameter)
+    - folder_X_subfolder_1_initialconfiguration_Y_iteration_Z.dat (Modified Plumed File)
+    - folder_X_subfolder_1_initialconfiguration_Y_iteration_Z.mdp (Modified mdp File)
+    - folder_X_subfolder_1_initialconfiguration_Y_iteration_Z.cpt
+  - 2/
+    - ...
 ```
 
 ![Outputfile Organization](/assets/outputfileorganization.png)
