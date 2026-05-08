@@ -103,7 +103,6 @@ AdSamp/
 -AtomDistance.cpp / .h
 -Biggest.cpp / .h
 -tutorials/
-
 -templates/
   -
   - 
