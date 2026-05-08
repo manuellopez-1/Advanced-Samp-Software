@@ -10,17 +10,17 @@ All starting structure files must live in the same directory, share a delimiter,
 
 ```text
 structures/
-├── 1.gro
-├── 2.gro
-└── 3.gro
+- 1.gro
+- 2.gro
+- 3.gro
 ```
 **LAMMPS**
 
 ```text
 structures/
-├── 1.in
-├── 2.in
-└── 3.in
+- 1.in
+- 2.in
+- 3.in
 ```
 
 **Variable vs Constant Topology/Index (GROMACS ONLY)**
@@ -30,12 +30,12 @@ In GROMACS simulations there are input structure files as well as topology `.top
 
 ```text
 structures/
-├── 1.gro
-├── 1.top
-├── 1.ndx
-├── 2.gro
-├── 2.top
-└── 2.ndx
+- 1.gro
+- 1.top
+- 1.ndx
+- 2.gro
+- 2.top
+- 2.ndx
 ```
 
 ## ffs.mdp
