@@ -103,3 +103,7 @@ The next step is a basin simulation using the outputs of the exploration as an i
 23. Goal Lambda: | 4
 
 Now launch `sbatch AdSampControl.sh` to begin the basin simulation.
+
+### On Interruptions
+
+While this script is running feel free to cancel the AdSamp.sh run and start it back on to see how interruptions are handled. A .cpt file will be saved and once the controller is queued once more it will continue seamlessly. 
