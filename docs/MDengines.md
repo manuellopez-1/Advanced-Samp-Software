@@ -44,3 +44,6 @@ The table below documents the initialization and run commands AdSamp uses intern
 | With PLUMED | — | `run strides pre yes post no` |
 | Continuation (Limited Steps) | `... -cpi propername.cpt` | `run strides pre no post no` |
 | With PLUMED | — | `run strides pre yes post no` |
+
+## Selective Parallelism
+In order to achieve maximum simulation speed the differing molecular dynamics engines must be parallelized differently. LAMMPS simulations can be effectively run with multiple cores by assigning the cores to the same LAMMPS pointed. As such, it is convenient to parellelize the script using OpenMPI when running a simulation with a LAMMPS MD engine. However, for GROMACS the software must avoid paralllelism to properly allow the simulation to use the allocated cores following the system call. As such, this software uses a virtual parallelism, with LAMMPS being initialized with OpenMPI where GROMACS is not. 
