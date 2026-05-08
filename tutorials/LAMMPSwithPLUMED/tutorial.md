@@ -51,4 +51,23 @@ Following these inputs the following two files will have been created: `AdSamp.s
 
 ### Outputs
 
-Once the simulation has run all outputs described in [outputs](/docs/outputfiles.md). 
+Once the simulation has run all outputs described in [outputs](/docs/outputfiles.md) will be generated under the folder `Exploration/`. Moreover, though this simulation is quick, a live file called `RunInfo.txt` was generated in the working directory to give the completed number of simulations over time. Now, in order for this run to be used as an input for the next simulation, the run must be postprocessed.
+
+
+### Input interaction
+To begin postprocessing, run `./AdSamp` to begin login interaction. Input the following:
+
+1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
+2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
+3. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+4. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
+5. Postprocessing (Yes: 1, No: 2): | 1
+6. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 2
+7. Partition: | pi_balou
+8. Max Run Time (D-HH:MM:SS): | 24:00:00
+9. email (write 0 for no email): | manuel.lopez@yale.edu
+10. Most Recent Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
+11. Completed Run Directory: | Exploration
+12. Postprocessing folder name: | ProcessedExploration
+
+Once these inptus have been given, a file called `PostProcessing.sh` will be created, submit it using `sbatch PostProcessing.sh` to develop a postprocessed folder, for more information on this process read [Algorithms](/docs/algorithms.md).
