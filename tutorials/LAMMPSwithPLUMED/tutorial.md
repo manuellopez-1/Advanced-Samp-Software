@@ -4,6 +4,8 @@ This tutorial will instruct a user for how to run a full FFS calculation on a si
 
 ### System Description
 
+The system used here is not representative of a rare event. Rather it is a simple toy system that allows easy demonstration of the properties of this software. This involves two atoms in harmonic oscilation. This demonstration will show all algorithms usable in this software (for more information see [algorithms](/docs/algorithms.md). 
+
 ### Installation
 
 First, all dependencies must be installed and the AdSamp software must be compiled. Instructions may be found at [Installation](/README.md).
