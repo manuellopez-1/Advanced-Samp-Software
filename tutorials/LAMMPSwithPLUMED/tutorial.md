@@ -42,3 +42,13 @@ With the system set up and the script compiled, run `./AdSamp` to begin login in
 19. Structure File Directory: | Inputs
 20. Desired Number of Steps: | 100000
 21. Batch Size (for 1 per file return 0): | 0
+
+You will notice safety features throughout, for example if you misformat the run times you will be prompted to retype this. 
+
+### Launching simulation
+Following these inputs the following two files will have been created: `AdSamp.sh` and `AdSampController.sh`. To launch the simulations simply `sbatch AdSampController.sh` note that the controller will launch `AdSamp.sh` do not launch this one. There are some safety features built in here. For example if you launch `AdSampController.sh` twice the newer one will cancel the former and continue monitoring the simulations. These scripts will run until the simulation is complete, at which point an email will be sent if the account was provided. 
+
+
+### Outputs
+
+Once the simulation has run all outputs described in [outputs](/docs/outputfiles.md). 
