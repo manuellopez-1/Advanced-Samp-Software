@@ -2061,7 +2061,7 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
     }
     std::string Outputfolder = ask<std::string>("Output folder",[](const std::string & s){static const std::regex r(R"(^[A-Za-z0-9._-]+$)"); return std::regex_match(s, r);});
     int runtype = ask<int>("Run type (0: Basin, 1: Probabilistic, 2: Exploration)",[](int x){return x==0 || x==1 || x ==2;});
-    int stride = ask<int>("OP Stride: ",[](int x){return x>0;});
+    int stride = ask<int>("OP Stride",[](int x){return x>0;});
     std::string Delimeter;
     std::string structurefilesloc;
     int condition = 0;
