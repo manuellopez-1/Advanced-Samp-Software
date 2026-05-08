@@ -8,7 +8,7 @@ The system used here is not representative of a rare event. Rather it is a simpl
 
 ### Installation
 
-First, all dependencies must be installed and the AdSamp software must be compiled. Instructions may be found at [Installation](/README.md).
+First, all dependencies must be installed and the AdSamp software must be compiled. Instructions may be found at [Installation](/README.md). Ensure that OpenMPI, FFTW, and modified gromacs are loaded (gromacs must be installed and loaded even in LAMMPS simulations).
 
 
 ### Input File Setup
@@ -18,4 +18,5 @@ Next, copy the following files into the AdSamp working directory [ffs.mdp](/tuto
 
 ## Input interaction
 
-With the system set up and the script compiled, 
+With the system set up and the script compiled, run `./AdSamp` to begin login interaction. Input the following:
+
