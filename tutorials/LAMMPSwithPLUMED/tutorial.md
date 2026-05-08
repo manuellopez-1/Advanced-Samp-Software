@@ -107,3 +107,11 @@ Now launch `sbatch AdSampControl.sh` to begin the basin simulation.
 ### On Interruptions
 
 While this script is running feel free to cancel the AdSamp.sh run and start it back on to see how interruptions are handled. A .cpt file will be saved and once the controller is queued once more it will continue seamlessly. 
+
+### Outputs
+
+Once the simulation has run all outputs described in [outputs](/docs/outputfiles.md) will be generated under the folder `Exploration/`. This simulation will feature a file `RunInfo.txt` that will hold the basin simulation information over time with live updates. Within the output folder, a ffile called `BasinCrossingRecorder.txt` can be found that will give the crossings over time along with their names. 
+
+Now, in order for this run to be used as an input for the next simulation, the run must be postprocessed.
+
+
