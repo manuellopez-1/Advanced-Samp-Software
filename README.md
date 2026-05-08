@@ -97,28 +97,27 @@ See [Input Files](docs/Inputfiles.md) for full requirements and examples.
 
 ```plaintext
 AdSamp/
-├── AdSamp.cpp
-├── OrderParameter.hpp
-├── orderparameterpicker.cpp / .h
-├── AtomDistance.cpp / .h
-├── Biggest.cpp / .h
-├── tutorials/
-│   ├── 
+-AdSamp.cpp
+-OrderParameter.hpp
+-orderparameterpicker.cpp / .h
+-AtomDistance.cpp / .h
+-Biggest.cpp / .h
+-tutorials/
 
-├── templates/
-│   ├── 
-│   ├── 
-│   └──
-├── docs/
-│   ├── algorithms.md
-│   ├── Inputfiles.md
-│   ├── outputfiles.md
-│   ├── MDengines.md
-│   ├── hpc.md
-│   ├── multistep.md
-│   ├── InternalSoftwareOperation.md
-├── assets
-└── README.md
+-templates/
+  -
+  - 
+  -
+-docs/
+  - algorithms.md
+  - Inputfiles.md
+  - outputfiles.md
+  - MDengines.md
+  - hpc.md
+  - multistep.md
+  - InternalSoftwareOperation.md
+  - assets
+-README.md
 ```
 
 ---
