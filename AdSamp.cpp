@@ -2731,7 +2731,7 @@ void convertfromCPT(Context* ctx,std::string processedfolder, std::string rootdi
             LAMMPS_NS::LAMMPS* lmp = new LAMMPS_NS::LAMMPS(argc, argv, ctx->get_comm());
             lmp->input->one(("read_restart " + cptfile).c_str());
             lmp->input->one("reset_timestep 0");
-            lmp->input->one( ("dump exportdump all atom 1 " + outputfolder + "/" + std::to_string(nom) + ".in").c_str() );
+            lmp->input->one( ("dump exportdump all custom 1 " + outputfolder + "/" + std::to_string(nom) + ".in id type x y z").c_str() );
             lmp->input->one("run 0");
             lmp->input->one("undump exportdump");
             delete lmp ;
