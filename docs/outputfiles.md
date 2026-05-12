@@ -104,7 +104,7 @@ Postprocessing must be run before proceeding to the next simulation step. Runnin
 4. Renames all `.cpt` files to be used in proceeding runs (non repeating integer values)
 5. Records propername, new integer value (for successful trajectories) into a gronames.txt file that also tracks ascendancy of the trajectory (previous parent, child relationships)
 
-`gronames.txt` is required for GROMACS continuation runs, since GROMACS needs the original input structure to initialize the next simulation. It is also useful for analysis when tracing a trajectory back to its starting point.
+`gronames.txt` is required for GROMACS continuation runs, since GROMACS needs the original input structure to initialize the next simulation. It is also useful for analysis when tracing a trajectory back to its starting point. Note that following postprocessing of probabilistic simulations, this file will contain information only on successes. See the `path.txt` file for information on all trajectory types.
 
 > Skipping postprocessing and proceeding directly to the next step will cause the run to fail.
 
