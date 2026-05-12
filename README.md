@@ -37,11 +37,7 @@ See [Algorithms](docs/algorithms.md) for a detailed description of each phase.
 Load OpenMPI, FFTW, the modified GROMACS build, and PLUMED, then compile with:
 
 ```
-mpicxx -std=c++17 AdSamp.cpp orderparameterpicker.cpp \
-Biggest.cpp AtomDistance.cpp -o AdSamp \
--I. -I/pathtolammps/include \
--L/pathtolammps/lib64 -llammps \
--Wl,-rpath,/pathtolammps/lib64
+mpicxx -std=c++17 AdSamp.cpp orderparameterpicker.cpp Biggest.cpp AtomDistance.cpp -o AdSamp -I. -I/pathtolammps/include -L/pathtolammps/lib64 -llammps -Wl,-rpath,/pathtolammps/lib64
 ```
 
 All further interactions with the software use:
