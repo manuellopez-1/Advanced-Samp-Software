@@ -132,7 +132,29 @@ To begin postprocessing, run `./AdSamp` to begin login interaction. Input the fo
 
 Once these inputs have been given, a file called `PostProcessing.sh` will be created, submit it using `sbatch PostProcessing.sh` to develop a postprocessed folder, for more information on this process read [Algorithms](/docs/algorithms.md).
 
+### Data Interpretation (Postprocessing Interpretation and Binary Exporter)
 
+Within the newly created `BasinProcessed` folder will be all the crossings saved as `.cpt` files as well as the `C` file that tracks the order parameter over time. Aside from these exist three bookkeeping files that help with input tracking. First is `gronames.txt` which gives the relationship between the children `.cpt` files and the parent configuration that produced them. Next is the global `path.txt` file that combined all the path files of this run, in this case there was only one. Finally is `AllCrossings.txt` formatted as per the following.
 
+```plaintext
+Initial Configuration,   Propername,   Crossing Time,   Crossing Name
+```
+Noticeably  these `,cpt` files are binary and so cannot be read. As such, the next step will be to export them to a readable format. Run `./AdSamp` from the working directory to begin login interaction. Input the following:
+
+1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
+2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
+3. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+4. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
+5. Postprocessing (Yes: 1, No: 2): | 1
+6. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 1
+7. Partition: | pi_balou
+8. Max Run Time (D-HH:MM:SS): | 24:00:00
+9. email (write 0 for no email): | manuel.lopez@yale.edu
+10. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
+11. Completed Run Directory: | Basin
+12. Postprocessed Directory: | BasinProcessed
+13. Output folder name: | BasinReadable
+
+Once these inputs have been given, a file called `CPTExport.sh` will be created, submit it using `sbatch CPTExport.sh` to develop a readable folder, for more information on this process read [Algorithms](/docs/algorithms.md).
 
 
