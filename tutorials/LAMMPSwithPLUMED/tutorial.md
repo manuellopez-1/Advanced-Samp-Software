@@ -110,7 +110,7 @@ While this script is running feel free to cancel the AdSamp.sh run and start it 
 
 ### Outputs
 
-Once the simulation has run all outputs described in [outputs](/docs/outputfiles.md) will be generated under the folder `Exploration/`. This simulation will feature a file `RunInfo.txt` that will hold the basin simulation information over time with live updates. Within the output folder, a ffile called `BasinCrossingRecorder.txt` can be found that will give the crossings over time along with their names. 
+Once the simulation has run all outputs described in [outputs](/docs/outputfiles.md) will be generated under the folder `Exploration/`. This simulation will feature a file `RunInfo.txt` that will hold the basin simulation information over time with live updates. Within the output folder, a file called `BasinCrossingRecorder.txt` can be found that will give the crossings over time along with their names. 
 
 Now, in order for this run to be used as an input for the next simulation, the run must be postprocessed.
 
@@ -157,4 +157,38 @@ Noticeably  these `,cpt` files are binary and so cannot be read. As such, the ne
 
 Once these inputs have been given, a file called `CPTExport.sh` will be created, submit it using `sbatch CPTExport.sh` to develop a readable folder, for more information on this process read [Algorithms](/docs/algorithms.md).
 
+When the folder `BasinReadable` has been developed, these files may all be read and will be found to have interatomic distances of less than four (noting periodic boundary conditions).
+
+## Probabilistic Simulation
+
+### Input interaction
+
+Now that the basin run has measured the initial flux between two milestones and the run has been postprocessed, a probabilistic simulation may now be run. Trigger `./AdSamp` to begin login interaction. Input the following:
+
+1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
+2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
+3. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+4. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
+5. Postprocessing (Yes: 1, No: 2): | 2
+6. Controller Partition (maximize runtime): | pi_balou
+7. Controller Max Run Time (D-HH:MM:SS): | 24:00:00
+8. email (write 0 for no email): | manuel.lopez@yale.edu
+9. Runner Partition (maximize cores): | pi_balou
+10. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
+11. Runner Cores: | 4
+12. MD Step Size (ps): | .001
+13. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
+14. Using PLUMED (1: yes, 0: no): | 1
+15. Output folder: | Probabilistic
+16. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 1
+17. OP Stride: | 100
+18. Structure File Delimeter (Including .): | .cpt
+19. Structure File Directory: | BasinProcessed
+21. Batch Size: | 2
+22. Max Crossings Before Interruption: | 200
+23. lambda_A: | 7
+24. Goal Lambda: | 3
+25. Trajectories per folder: | 100
+
+Now launch `sbatch AdSampControl.sh` to begin the probabilistic simulation.
 
