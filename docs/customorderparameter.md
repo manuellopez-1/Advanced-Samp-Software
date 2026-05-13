@@ -113,79 +113,37 @@ std::unique_ptr<OrderParameter> createOrderParameter(const std::string& name) {
 
 ### 4. Add to the build
 
-Add `MyOP.cpp` to your `CMakeLists.txt` (or equivalent) alongside the other OP sources:
+### 4. Add to the build
 
-```cmake
-target_sources(adsamp PRIVATE
-    AdSamp.cpp
-    orderparameterpicker.cpp
-    AtomDistance.cpp
-    MyOP.cpp          # <-- add this line
-)
+Add `MyOP.cpp` to the compile command alongside the other sources:
+
+```bash
+mpicxx -std=c++17 AdSamp.cpp orderparameterpicker.cpp MyOP.cpp -o AdSamp -I. -I/pathtolammps/include -L/pathtolammps/lib64 -llammps -Wl,-rpath,/pathtolammps/lib64
 ```
 
-Then recompile. Pass `MyOP` as the `CUSTOMOP` argument when launching AdSamp.
+Then pass `MyOP` as the `CUSTOMOP` argument when launching AdSamp.
 
 ---
 
-## Worked Example — `AtomDistance`
-
 `AtomDistance` measures the minimum-image distance between two specific atoms identified by their global tags (atom 1 and atom 2). It is a useful template for any OP that operates on a small fixed set of atoms.
 
-**`AtomDistance.hpp`**
+The files are given in [AtomDistance.hpp](/tutorials/LAMMPSnoPLUMED/AtomDistance.hpp) and [AtomDistance.cpp](/tutorials/LAMMPSnoPLUMED/AtomDistance.cpp). Once copied into your working directory, make two changes:
 
+**`orderparameterpicker.cpp`** — add one include and one `if` block:
 ```cpp
-#pragma once
-#include "OrderParameter.hpp"
+#include "AtomDistance.hpp"   // add at the top
 
-class AtomDistance : public OrderParameter {
-public:
-    double update(LAMMPS_NS::LAMMPS* lmp) override;
-private:
-    static constexpr int TAG1 = 1;
-    static constexpr int TAG2 = 2;
-};
+// inside createOrderParameter, before the throw:
+if (name == "AtomDistance")
+    return std::make_unique<AtomDistance>();
 ```
 
-**`AtomDistance.cpp`**
-
-```cpp
-#include <cmath>
-#include "mpi.h"
-#include "lammps/atom.h"
-#include "lammps/domain.h"
-#include "AtomDistance.hpp"
-
-double AtomDistance::update(LAMMPS_NS::LAMMPS* lmp) {
-    auto* atom   = lmp->atom;
-    auto* domain = lmp->domain;
-    double** x   = atom->x;
-    int*  tag    = atom->tag;
-    int   nlocal = atom->nlocal;
-
-    // Each rank searches its local atoms for TAG1 and TAG2.
-    double local1[3] = {0.0, 0.0, 0.0};
-    double local2[3] = {0.0, 0.0, 0.0};
-    for (int i = 0; i < nlocal; i++) {
-        if (tag[i] == TAG1) { local1[0]=x[i][0]; local1[1]=x[i][1]; local1[2]=x[i][2]; }
-        if (tag[i] == TAG2) { local2[0]=x[i][0]; local2[1]=x[i][1]; local2[2]=x[i][2]; }
-    }
-
-    // Collect positions across all ranks (each atom lives on exactly one rank,
-    // so MPI_SUM gives the correct global position).
-    double global1[3], global2[3];
-    MPI_Allreduce(local1, global1, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    MPI_Allreduce(local2, global2, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
-    // Compute displacement and apply minimum-image convention.
-    double dx[3] = {global1[0]-global2[0], global1[1]-global2[1], global1[2]-global2[2]};
-    domain->minimum_image(dx[0], dx[1], dx[2]);
-
-    return std::sqrt(dx[0]*dx[0] + dx[1]*dx[1] + dx[2]*dx[2]);
-}
+**Compile Command`** — Add the Custom OP to the executable
+```
+mpicxx -std=c++17 AdSamp.cpp orderparameterpicker.cpp AtomDistance.cpp -o AdSamp -I. -I/pathtolammps/include -L/pathtolammps/lib64 -llammps -Wl,-rpath,/pathtolammps/lib64
 ```
 
-To use a different pair of atoms, change `TAG1` and `TAG2` to the desired global atom IDs. To generalise to a group of atoms (e.g. a centre of mass), accumulate weighted sums in the local arrays and change the final reduction and return expression accordingly.
+To use a different pair of atoms, change `TAG1` and `TAG2` in `AtomDistance.hpp` to the desired global atom IDs. To generalise to a group of atoms (e.g. a centre of mass), accumulate weighted sums in the local arrays and change the final reduction and return expression accordingly.
 
 ---
 
