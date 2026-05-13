@@ -121,7 +121,7 @@ mpicxx -std=c++17 AdSamp.cpp orderparameterpicker.cpp MyOP.cpp -o AdSamp -I. -I/
 
 Then pass `MyOP` as the `CUSTOMOP` argument when launching AdSamp.
 
----
+### Example (Atomic Distance)
 
 `AtomDistance` measures the minimum-image distance between two specific atoms identified by their global tags (atom 1 and atom 2). It is a useful template for any OP that operates on a small fixed set of atoms.
 
