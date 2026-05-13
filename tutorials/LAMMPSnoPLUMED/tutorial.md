@@ -18,7 +18,7 @@ Next, copy [ffs.mdp](/tutorials/LAMMPSwithPLUMED/ffs.mdp) into the working direc
 
 ### Order Parameter
 
-In this example PLUMED will not be employed towards calculating the order parameter. Instead the interatomic distance will be calculated using the provided `AtomDistance.cpp` script.
+In this example PLUMED will not be employed towards calculating the order parameter. Instead the interatomic distance will be calculated using the provided `AtomDistance.cpp` script. See the provided [customOP](/docs/customorderparameter.md) tutorial for how to set up a custom order parameter, the bottom of the documentation handles this case explicitly. 
 
 ## Exploration 
 
