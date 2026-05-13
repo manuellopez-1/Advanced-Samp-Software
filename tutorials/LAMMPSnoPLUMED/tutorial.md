@@ -184,7 +184,8 @@ Now that the basin run has measured the initial flux between two milestones and 
 11. Runner Cores: | 4
 12. MD Step Size (ps): | .001
 13. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
-14. Using PLUMED (1: yes, 0: no): | 1
+14. Using PLUMED (1: yes, 0: no): | 0
+15. Custom OP Filename: | AtomDistance
 15. Output folder: | Probabilistic
 16. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 1
 17. OP Stride: | 100
