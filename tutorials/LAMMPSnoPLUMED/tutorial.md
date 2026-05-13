@@ -13,7 +13,12 @@ First, all dependencies must be installed and the AdSamp software must be compil
 
 ### Input File Setup
 
-Next, copy the following files into the AdSamp working directory [ffs.mdp](/tutorials/LAMMPSwithPLUMED/ffs.mdp), [plumed.dat](/tutorials/LAMMPSwithPLUMED/plumed.dat). Finally, create an input structure working directory, for this example, the folder should be named `Inputs` , and should include this file, [samplesystem.in](/tutorials/LAMMPSwithPLUMED/samplesystem.in). Rename this file `1.in`. For information regarding the naming convention of input files see [Inputs](/docs/Inputfiles). 
+Next, copy [ffs.mdp](/tutorials/LAMMPSwithPLUMED/ffs.mdp) into the working directory. Finally, create an input structure working directory, for this example, the folder should be named `Inputs` , and should include this file, [samplesystem.in](/tutorials/LAMMPSwithPLUMED/samplesystem.in). Rename this file `1.in`. For information regarding the naming convention of input files see [Inputs](/docs/Inputfiles). 
+
+
+### Order Parameter
+
+In this example PLUMED will not be employed towards calculating the order parameter. Instead the interatomic distance will be calculated using the provided `AtomDistance.cpp` script.
 
 ## Exploration 
 
