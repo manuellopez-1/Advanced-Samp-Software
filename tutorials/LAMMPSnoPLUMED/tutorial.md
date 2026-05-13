@@ -158,9 +158,8 @@ Noticeably  these `,cpt` files are binary and so cannot be read. As such, the ne
 8. Max Run Time (D-HH:MM:SS): | 24:00:00
 9. email (write 0 for no email): | manuel.lopez@yale.edu
 10. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
-11. Completed Run Directory: | Basin
-12. Postprocessed Directory: | BasinProcessed
-13. Output folder name: | BasinReadable
+11. Postprocessed Directory: | BasinProcessed
+12. Output folder name: | BasinReadable
 
 Once these inputs have been given, a file called `CPTExport.sh` will be created, submit it using `sbatch CPTExport.sh` to develop a readable folder, for more information on this process read [Algorithms](/docs/algorithms.md).
 
