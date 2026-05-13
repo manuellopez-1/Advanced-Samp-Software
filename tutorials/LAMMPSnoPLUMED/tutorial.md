@@ -39,14 +39,15 @@ With the system set up and the script compiled, run `./AdSamp` to begin login in
 11. Runner Cores: | 4
 12. MD Step Size (ps): | .001
 13. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
-14. Using PLUMED (1: yes, 0: no): | 1
-15. Output folder: | Exploration
-16. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
-17. OP Stride: | 100
-18. Structure File Delimeter (Including .): | .in
-19. Structure File Directory: | Inputs
-20. Desired Number of Steps: | 100000
-21. Batch Size (for 1 per file return 0): | 0
+14. Using PLUMED (1: yes, 0: no): | 0
+15. Custom OP Filename: | AtomDistance
+16. Output folder: | Exploration
+17. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
+18. OP Stride: | 100
+19. Structure File Delimeter (Including .): | .in
+20. Structure File Directory: | Inputs
+21. Desired Number of Steps: | 100000
+22. Batch Size (for 1 per file return 0): | 0
 
 You will notice safety features throughout, for example if you misformat the run times you will be prompted to retype this. 
 
