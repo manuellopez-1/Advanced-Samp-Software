@@ -46,7 +46,7 @@ With the system set up and the script compiled, run `./AdSamp` to begin login in
 18. OP Stride: | 100
 19. Structure File Delimeter (Including .): | .in
 20. Structure File Directory: | Inputs
-21. Desired Number of Steps: | 100000
+21. Desired Number of Steps: | 10000000
 22. Batch Size (for 1 per file return 0): | 0
 
 You will notice safety features throughout, for example if you misformat the run times you will be prompted to retype this. 
@@ -57,7 +57,7 @@ Following these inputs the following two files will have been created: `AdSamp.s
 
 ### Outputs
 
-Once the simulation has run all outputs described in [outputs](/docs/outputfiles.md) will be generated under the folder `Exploration/`. Moreover, though this simulation is quick, a live file called `RunInfo.txt` was generated in the working directory to give the completed number of simulations over time. Now, in order for this run to be used as an input for the next simulation, the run must be postprocessed.
+Once the simulation has run all outputs described in [outputs](/docs/outputfiles.md) will be generated under the folder `Exploration/`. Moreover, though this simulation is quick, a live file called `RunInfo.txt` was generated in the working directory to give the completed number of simulations over time.  If you have completed the other tutorials you may notice that the outputs are structured identically regardless of run parameters. Now, in order for this run to be used as an input for the next simulation, the run must be postprocessed.
 
 
 ### Input interaction (Postprocessing)
@@ -97,16 +97,17 @@ The next step is a basin simulation using the outputs of the exploration as an i
 11. Runner Cores: | 4
 12. MD Step Size (ps): | .001
 13. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
-14. Using PLUMED (1: yes, 0: no): | 1
-15. Output folder: | Basin
-16. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 0
-17. OP Stride: | 100
-18. Structure File Delimeter (Including .): | .cpt
-19. Structure File Directory: | ProcessedExploration
-20. Desired Number of Steps: | 10000000
-21. Batch Size (for 1 per file return 0): | 0
-22. lambda_A: | 7
-23. Goal Lambda: | 4
+14. Using PLUMED (1: yes, 0: no): | 0
+15. Custom OP Filename: | AtomDistance
+16. Output folder: | Basin
+17. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 0
+18. OP Stride: | 100
+19. Structure File Delimeter (Including .): | .cpt
+20. Structure File Directory: | ProcessedExploration
+21. Desired Number of Steps: | 10000000
+22. Batch Size (for 1 per file return 0): | 0
+23. lambda_A: | 7
+24. Goal Lambda: | 4
 
 Now launch `sbatch AdSampControl.sh` to begin the basin simulation.
 
