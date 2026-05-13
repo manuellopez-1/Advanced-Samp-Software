@@ -111,9 +111,6 @@ The next step is a basin simulation using the outputs of the exploration as an i
 
 Now launch `sbatch AdSampControl.sh` to begin the basin simulation.
 
-### On Interruptions
-
-While this script is running feel free to cancel the AdSamp.sh run and start it back on to see how interruptions are handled. A .cpt file will be saved and once the controller is queued once more it will continue seamlessly. 
 
 ### Outputs
 
@@ -198,6 +195,10 @@ Now that the basin run has measured the initial flux between two milestones and 
 25. Trajectories per folder: | 100
 
 Now launch `sbatch AdSampControl.sh` to begin the probabilistic simulation.
+
+### On Interruptions
+
+While this script is running feel free to cancel the AdSamp.sh run and start it back on to see how interruptions are handled. A .cpt file will be saved and once the controller is queued once more it will continue seamlessly. 
 
 ### Output Interpretation
 
