@@ -113,8 +113,6 @@ std::unique_ptr<OrderParameter> createOrderParameter(const std::string& name) {
 
 ### 4. Add to the build
 
-### 4. Add to the build
-
 Add `MyOP.cpp` to the compile command alongside the other sources:
 
 ```bash
