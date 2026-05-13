@@ -222,3 +222,7 @@ To begin postprocessing and clean up the outputs (including combining the output
 13. Groname File: | BasinProcessed/gronames.txt
 
 Note that in order to have some long term correspondense between parent and children files the gronames.txt file is appended after all probabilistic steps. This file `ProbabilisticProcessed/gronames.txt` will have the full pathway of names. View [outputs](/docs/outputfiles.md) for more information on data interpretation.
+
+### On Consistency
+
+If you have done the other tutorials you should notice that regardless of methodology the conditional probability measured in this step is roughly consistent (noting few trajectories).
