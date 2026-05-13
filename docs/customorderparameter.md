@@ -84,7 +84,6 @@ double MyOP::update(LAMMPS_NS::LAMMPS* lmp) {
     // --- reduce across MPI ranks ---
     double global_val = 0.0;
     MPI_Allreduce(&local_val, &global_val, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    //            ^^^ replace MPI_SUM with MPI_MAX etc. as appropriate
 
     return global_val;
 }
@@ -102,21 +101,13 @@ Key points:
 Open `orderparameterpicker.cpp` and add an `if` block before the `throw`:
 
 ```cpp
-#include "MyOP.hpp"   // add this include
+#include "MyOP.hpp" //add this include
 
 std::unique_ptr<OrderParameter> createOrderParameter(const std::string& name) {
-    if (name == "Biggest")
-        return std::make_unique<Biggest>();
-
-    if (name == "AtomDistance")
-        return std::make_unique<AtomDistance>();
-
-    if (name == "MyOP")                       // <-- add this block
+    if (name == "MyOP") //add this block
         return std::make_unique<MyOP>();
 
-    throw std::runtime_error(
-        "Unknown CUSTOMOP '" + name +
-        "'. Valid options: Biggest, AtomDistance, MyOP");
+    throw std::runtime_error("Unknown CUSTOMOP '" + name +"'. Valid options: Biggest, AtomDistance, MyOP");
 }
 ```
 
