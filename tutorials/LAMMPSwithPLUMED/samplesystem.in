@@ -14,4 +14,3 @@ minimize        1.0e-6 1.0e-8 1000 10000
 reset_timestep  0
 thermo          100
 thermo_style    custom step temp pe ke etotal press
-dump            1 all atom 100 dump.lammpstrj
