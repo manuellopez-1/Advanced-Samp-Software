@@ -96,8 +96,6 @@ AdSamp/
 -AdSamp.cpp
 -OrderParameter.hpp
 -orderparameterpicker.cpp / .h
--AtomDistance.cpp / .h
--Biggest.cpp / .h
 -tutorials/
 -templates/
   -
