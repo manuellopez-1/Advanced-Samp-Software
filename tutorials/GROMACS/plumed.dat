@@ -1,0 +1,12 @@
+r: DISTANCE ATOMS=1,2
+  
+COMMITTOR ...
+        ARG=r
+        STRIDE=100
+        BASIN_LL1=0.0
+        BASIN_UL1=1.2
+        BASIN_LL2=2.0
+        BASIN_UL2=100.0
+... COMMITTOR
+PRINT ARG=r STRIDE=100 FILE=colvar.dat
+FLUSH STRIDE=100
