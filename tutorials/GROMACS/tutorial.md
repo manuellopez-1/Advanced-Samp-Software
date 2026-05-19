@@ -13,7 +13,7 @@ First, all dependencies must be installed and the AdSamp software must be compil
 
 ### Input File Setup
 
-Next, copy the following files into the AdSamp working directory [ffs.mdp](/tutorials/LAMMPSwithPLUMED/ffs.mdp), [plumed.dat](/tutorials/LAMMPSwithPLUMED/plumed.dat). Finally, create an input structure working directory, for this example, the folder should be named `Inputs` , and should include this file, [samplesystem.in](/tutorials/LAMMPSwithPLUMED/samplesystem.in). Rename this file `1.in`. For information regarding the naming convention of input files see [Inputs](/docs/Inputfiles). 
+Next, copy the following files into the AdSamp working directory [topol.top](/tutorials/GROMACS/topol.top), [index.ndx](/tutorials/GROMACS/index.ndx), [ffs.mdp](/tutorials/GROMACS/ffs.mdp), [plumed.dat](/tutorials/GROMACS/plumed.dat). Finally, create an input structure working directory, for this example, the folder should be named `Inputs` , and should include this file, [1.gro](/tutorials/GROMACS/1.gro). For information regarding the naming convention of input files see [Inputs](/docs/Inputfiles). 
 
 ## Exploration 
 
@@ -33,13 +33,13 @@ With the system set up and the script compiled, run `./AdSamp` to begin login in
 10. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
 11. Runner Cores: | 4
 12. MD Step Size (ps): | .001
-13. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
-14. Using PLUMED (1: yes, 0: no): | 1
-15. Output folder: | Exploration
-16. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
-17. OP Stride: | 100
-18. Structure File Delimeter (Including .): | .in
-19. Structure File Directory: | Inputs
+13. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
+14. Output folder: | Exploration
+15. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
+16. OP Stride: | 100
+17. Structure File Delimeter (Including .): | .in
+18. Structure File Directory: | Inputs
+19. Constant Topology? (one index and topology file in working directory applies to all structures), 0: no, 1: yes: | 1
 20. Desired Number of Steps: | 100000
 21. Batch Size (for 1 per file return 0): | 0
 
