@@ -1872,8 +1872,13 @@ void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromac
     controller<<"module load "<<FFTW<<std::endl;
     controller<<"export PATH=$PATH:/"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
     controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
-    std::string commandline ="srun -n 1 ./AdSamp CONVERT " +safe(postprocessedfolder) + " "+ safe(rootdirectory) + " "+ safe(newfoldername) + " "+ std::to_string(MDEngine) + " " + std::to_string(constanttopology); //add in an extra input so not same length as controller
-    controller<<commandline<<std::endl;
+    
+    if (MDEngine ==0){
+        controller << "srun -n 1 ./AdSamp CONVERT " +safe(postprocessedfolder) + " "+ safe(rootdirectory) + " "+ safe(newfoldername) + " "+ std::to_string(MDEngine) + " " + std::to_string(constanttopology)<<std::endl; //add in an extra input so not same length as controller
+    }
+    else{
+        controller << "./AdSamp CONVERT " +safe(postprocessedfolder) + " "+ safe(rootdirectory) + " "+ safe(newfoldername) + " "+ std::to_string(MDEngine) + " " + std::to_string(constanttopology)<<std::endl; //add in an extra input so not same length as controller
+    }
 }
 
 void Login(){ //this will take in user inputs, ensure files are in order, then create a bash script for controller launch
@@ -2645,16 +2650,24 @@ void generateimdp(){
     int nstxoutline = -1;
     int nstvoutline = -1;
     int nstfoutline = -1;
+    int nstepsline = -1; 
     int lineIndex = 0;
     while (std::getline(mdp,line)){
-        if (line.find("nstxout") != std::string::npos){
-            nstxoutline =lineIndex;
+        auto pos = line.find("nstxout");
+        if (pos != std::string::npos) {
+            size_t after = pos + 7; 
+            if (after >= line.size() || (!std::isalnum(line[after]) && line[after] != '-')) {
+                nstxoutline = lineIndex;
+            }
         }
         if (line.find("nstvout") !=std::string::npos){
             nstvoutline = lineIndex;
         }
         if (line.find("nstfout")!= std::string::npos){
             nstfoutline = lineIndex;
+        }
+        if (line.find("nsteps ") != std::string::npos){
+            nstepsline = lineIndex;
         }
         lines.push_back(line);
         lineIndex++;
@@ -2664,10 +2677,12 @@ void generateimdp(){
         size_t pos = lines[nstxoutline].find("= ");
         size_t pos2 = lines[nstvoutline].find("= ");
         size_t pos3 = lines[nstfoutline].find("= ");
-        if (pos != std::string::npos && pos2 != std::string::npos && pos3 !=std::string::npos){
+        size_t posnsteps = lines[nstepsline].find("= ");
+        if (pos != std::string::npos && pos2 != std::string::npos && pos3 !=std::string::npos && nstepsline != -1 && posnsteps != std::string::npos){
             lines[nstxoutline] = lines[nstxoutline].substr(0,pos) + "= 1";
             lines[nstvoutline] = lines[nstvoutline].substr(0,pos2) + "= 1";
             lines[nstfoutline] = lines[nstfoutline].substr(0,pos3) + "= 1";
+            lines[nstepsline] = lines[nstepsline].substr(0, posnsteps) + "= " + std::to_string(std::numeric_limits<int>::max());
             std::ofstream mdp("i.mdp");
             for (const auto&line:lines){
                 mdp<<line<<std::endl;
@@ -2700,7 +2715,7 @@ void gromacsExport(Context* ctx,std::string groname, std::string cptfile, std::s
     int rank =ctx->rank();
     if (rank ==0){
         InitializeGMX("i.mdp", groname, topologyfile, indexfile, "sil.tpr", cptfile, ctx);
-        std::string cmd = "srun  --overlap --overcommit --cpu-bind=none --mem-bind=none --mem=0 -n 1 gmx_mpi mdrun -s sil.tpr -cpi " + cptfile + " -rerun " + cptfile + " -noappend -o sil.trr";
+        std::string cmd = "srun --cpu-bind=none -n 1 gmx_mpi mdrun -s sil.tpr -cpi " + cptfile + " -rerun " + cptfile + " -noappend -o sil.trr";
         std::system(cmd.c_str());
         std::vector<std::string> TRRS = listdirEnding(".", ".trr");
         std::string TRR = TRRS[0];
