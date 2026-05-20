@@ -75,6 +75,15 @@ See [Input Files](docs/Inputfiles.md) for full requirements and examples.
 
 ---
 
+## Tutorials
+
+There are three included tutorials AdSamp, each of these provides examples for running a full set of simulations [Multistep](docs/multistep.md) (involving exploration, basin, probabilistic, postprocessing, and binary export examples [Algorithms](docs/algorithms.md). The tutorials are as follows:
+
+- [GROMACS](/tutorials/GROMACS/)
+- [LAMMPSwithPLUMED](/tutorials/LAMMPSwithPLUMED)
+- [LAMMPSnoPLUMED](/tutorials/LAMMPSnoPLUMED)
+
+
 ## Documentation
 
 | Page | Contents |
@@ -86,6 +95,7 @@ See [Input Files](docs/Inputfiles.md) for full requirements and examples.
 | [HPC Usage](docs/hpc.md) | Scavenge partitions, requeue behavior, live monitoring, tmux |
 | [Running a Full Simulation](docs/multistep.md) | End-to-end FFS workflow across all phases |
 | [Software Internals](docs/InternalSoftwareOperation.md) | Login mode, controller, simulation run mode, binary export |
+| [Custom OP](docs/customorderparameter.md) | Creating and using a custom order parameter script for LAMMPS (no PLUMED) |
 
 ---
 
