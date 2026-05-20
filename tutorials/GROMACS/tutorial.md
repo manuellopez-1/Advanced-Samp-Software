@@ -176,13 +176,14 @@ Now that the basin run has measured the initial flux between two milestones and 
 10. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
 11. Runner Cores: | 4
 12. MD Step Size (ps): | .001
-13. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
-14. Using PLUMED (1: yes, 0: no): | 1
-15. Output folder: | Probabilistic
-16. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 1
-17. OP Stride: | 100
-18. Structure File Delimeter (Including .): | .cpt
-19. Structure File Directory: | BasinProcessed
+13. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
+14. Output folder: | Probabilistic
+15. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 1
+16. OP Stride: | 100
+17. Structure File Delimeter (Including .): | .cpt
+18. Structure File Directory: | BasinProcessed
+19. Constant Topology? (one index and topology file in working directory applies to all structures), 0: no, 1: yes: | 1
+20. Root directory (where .gro files are): | Inputs
 21. Batch Size: | 2
 22. Max Crossings Before Interruption: | 200
 23. lambda_A: | 7
