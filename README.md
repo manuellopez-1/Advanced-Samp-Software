@@ -126,6 +126,6 @@ AdSamp/
 
 ---
 
-## Author
+## Authors
 
-Manuel Alejandro López
+Manuel Alejandro López, Betul Uralcan, Amir Haji-Akbari
