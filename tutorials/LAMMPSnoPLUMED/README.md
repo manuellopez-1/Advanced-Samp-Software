@@ -28,7 +28,7 @@ In this example PLUMED will not be employed towards calculating the order parame
 With the system set up and the script compiled, run `./AdSamp` to begin login interaction. Input the following:
 1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
 2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+3. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
 4. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
 5. Postprocessing (Yes: 1, No: 2): | 2
 6. Controller Partition (maximize runtime): | pi_balou
@@ -38,16 +38,15 @@ With the system set up and the script compiled, run `./AdSamp` to begin login in
 10. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
 11. Runner Cores: | 4
 12. MD Step Size (ps): | .001
-13. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
-14. Using PLUMED (1: yes, 0: no): | 0
-15. Custom OP Filename: | AtomDistance
-16. Output folder: | Exploration
-17. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
-18. OP Stride: | 100
-19. Structure File Delimeter (Including .): | .in
-20. Structure File Directory: | Inputs
-21. Desired Number of Steps: | 10000000
-22. Batch Size (for 1 per file return 0): | 0
+13. Using PLUMED (1: yes, 0: no): | 0
+14. Custom OP Filename: | AtomDistance
+15. Output folder: | Exploration
+16. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
+17. OP Stride: | 100
+18. Structure File Delimeter (Including .): | .in
+19. Structure File Directory: | Inputs
+20. Desired Number of Steps: | 10000000
+21. Batch Size (for 1 per file return 0): | 0
 
 You will notice safety features throughout, for example if you misformat the run times you will be prompted to retype this. 
 
@@ -65,16 +64,17 @@ To begin postprocessing, run `./AdSamp` to begin login interaction. Input the fo
 
 1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
 2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
-4. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-5. Postprocessing (Yes: 1, No: 2): | 1
-6. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 2
-7. Partition: | pi_balou
-8. Max Run Time (D-HH:MM:SS): | 24:00:00
-9. email (write 0 for no email): | manuel.lopez@yale.edu
-10. Most Recent Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
-11. Completed Run Directory: | Exploration
-12. Postprocessing folder name: | ProcessedExploration
+3. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
+4. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+5. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
+6. Postprocessing (Yes: 1, No: 2): | 1
+7. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 2
+8. Partition: | pi_balou
+9. Max Run Time (D-HH:MM:SS): | 24:00:00
+10. email (write 0 for no email): | manuel.lopez@yale.edu
+11. Most Recent Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
+12. Completed Run Directory: | Exploration
+13. Postprocessing folder name: | ProcessedExploration
 
 Once these inputs have been given, a file called `PostProcessing.sh` will be created, submit it using `sbatch PostProcessing.sh` to develop a postprocessed folder, for more information on this process read [Algorithms](/docs/algorithms.md).
 
@@ -86,7 +86,7 @@ The next step is a basin simulation using the outputs of the exploration as an i
 
 1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
 2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+3. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
 4. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
 5. Postprocessing (Yes: 1, No: 2): | 2
 6. Controller Partition (maximize runtime): | pi_balou
@@ -96,7 +96,6 @@ The next step is a basin simulation using the outputs of the exploration as an i
 10. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
 11. Runner Cores: | 4
 12. MD Step Size (ps): | .001
-13. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
 14. Using PLUMED (1: yes, 0: no): | 0
 15. Custom OP Filename: | AtomDistance
 16. Output folder: | Basin
@@ -123,7 +122,7 @@ To begin postprocessing, run `./AdSamp` to begin login interaction. Input the fo
 
 1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
 2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+3. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
 4. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
 5. Postprocessing (Yes: 1, No: 2): | 1
 6. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 2
@@ -147,7 +146,7 @@ Noticeably  these `,cpt` files are binary and so cannot be read. As such, the ne
 
 1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
 2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+3. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
 4. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
 5. Postprocessing (Yes: 1, No: 2): | 1
 6. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 1
@@ -170,7 +169,7 @@ Now that the basin run has measured the initial flux between two milestones and 
 
 1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
 2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+3. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
 4. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
 5. Postprocessing (Yes: 1, No: 2): | 2
 6. Controller Partition (maximize runtime): | pi_balou
@@ -180,9 +179,8 @@ Now that the basin run has measured the initial flux between two milestones and 
 10. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
 11. Runner Cores: | 4
 12. MD Step Size (ps): | .001
-13. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
-14. Using PLUMED (1: yes, 0: no): | 0
-15. Custom OP Filename: | AtomDistance
+13. Using PLUMED (1: yes, 0: no): | 0
+14. Custom OP Filename: | AtomDistance
 15. Output folder: | Probabilistic
 16. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 1
 17. OP Stride: | 100
@@ -209,7 +207,7 @@ To begin postprocessing and clean up the outputs (including combining the output
 
 1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
 2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+3. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
 4. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
 5. Postprocessing (Yes: 1, No: 2): | 1
 6. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 2
