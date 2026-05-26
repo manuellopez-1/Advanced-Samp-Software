@@ -21,7 +21,7 @@ See [Algorithms](docs/algorithms.md) for a detailed description of each phase.
 
 ## Dependencies
 
-AdSamp can be compiled in either **LAMMPS mode** or **GROMACS mode**.
+AdSamp can be compiled in either **LAMMPS mode** or **No LAMMPS mode**.
 
 ### LAMMPS mode
 Requires:
@@ -38,9 +38,9 @@ Requires:
 - OpenMPI
 - FFTW
 
-> GROMACS mode does NOT require LAMMPS to be installed.
+> No LAMMPS mode does NOT require LAMMPS to be installed. This can only run GROMACS simulations
 
-> LAMMPS mode does NOT require GROMACS to be installed.
+> LAMMPS mode does NOT require GROMACS to be installed. This can run either GROMACS (if GROMACS is also installed, package is not used in compilation) or LAMMPS simulations. 
 
 > AdSamp requires a modified build of GROMACS that extends its internal interruption mechanism to save checkpoints immediately upon any interruption signal. This is required for accurate FFS saves and provides a significant speedup over frequent periodic saves. See [MD Engines](docs/MDengines.md) for details.
 
