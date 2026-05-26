@@ -4,10 +4,12 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#ifdef USE_LAMMPS
 #include "lammps/lammps.h"
 #include "lammps/input.h"
 #include "lammps/library.h"
 #include "lammps/atom.h"
+#endif
 #include "mpi.h"
 #include <sstream>
 #include <vector>
@@ -138,20 +140,11 @@ std::vector<std::string> readlines(const std::string& path) {
     return lines;
 }
 
-void LAMMPSVelocities(LAMMPS_NS::LAMMPS* lmp, double Temp){
-    //note first go already sets random seed
-    std::normal_distribution<double> gauss(0.0,1.0); //make them doubles (0.0)
-    std::mt19937 rng(std::random_device{}()); //create random number generator
-    double** v=lmp->atom->v;
-    double* m=lmp->atom->mass;
-    int* type=lmp->atom->type;
-    int nlocal=lmp->atom->nlocal;
-    double kT= Temp; //boltzmann factor is one for standard lammps units
-    for (int i =0; i<nlocal; i++){
-        double scale = sqrt( kT/m[type[i]]);
-        v[i][0]=gauss(rng)*scale;
-        v[i][1]=gauss(rng)*scale;
-        v[i][2]=gauss(rng)*scale;
+void DestroyLammps(LAMMPS_NS::LAMMPS*& lmp)
+{
+    if (lmp) {
+        delete lmp;
+        lmp = nullptr;  
     }
 }
 std::vector<std::string> tokenize(std::string line){
@@ -163,7 +156,6 @@ std::vector<std::string> tokenize(std::string line){
     }
     return tokens;
 }
-
 double ReadTemp(std::string path){
     std::ifstream mdp(path);
     std::string line;
@@ -181,6 +173,62 @@ double ReadTemp(std::string path){
         }
     }
     return 1.0; //shouldn't ever need this but to compile
+}
+std::pair<double,double> lastorderparameter(std::string colvar){ //so truthfully this need not be its own function, however, there's a good chance that LAMMPS and plumed print op in very different ways, this will help provide some uniformity
+    std::string lastline = lastdataline(colvar);
+    std::stringstream stream(lastline);
+    double time, value;
+    stream>>time>>value;
+    return {time, value};
+}
+
+int computecriteria(long long paso, long long nsteps, double orderparam,  int direction, double leftbound, double rightbound, int runtype){ //this function implements the 'handedness' of basin termination criteria
+    if (paso>=nsteps){
+        return 1;// okay so we should never be greater than but better safe than sorry
+    }
+    if (runtype ==1){ //right handed FFS
+        if (orderparam*direction >= direction*rightbound){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+    if (runtype ==2){ //left handed FFS
+        if (orderparam*direction<= direction*leftbound){
+            return 1;
+        }else{
+            return 0;
+        }
+    }if (runtype ==3){//standard FFS for probabilistic step
+        if (orderparam*direction<= direction*leftbound || orderparam*direction>=direction*rightbound){
+            return 1;
+        }else{
+            return 0;
+        }
+    }// note that in this workflow I don't have a condition for runtype 4 other than nsteps
+    return 0;
+}
+void Colvar_Writer(std::string nombre, double time, double OP, double deltaT){
+    std::ofstream out(nombre, std::ios::app);
+    out<< time*deltaT<< " "<< OP<< " "<< std::endl;
+}
+
+#ifdef USE_LAMMPS //all this uselammps stuff is so that a person can compile and run this for gromacs without also compiling LAMMPS
+void LAMMPSVelocities(LAMMPS_NS::LAMMPS* lmp, double Temp){
+    //note first go already sets random seed
+    std::normal_distribution<double> gauss(0.0,1.0); //make them doubles (0.0)
+    std::mt19937 rng(std::random_device{}()); //create random number generator
+    double** v=lmp->atom->v;
+    double* m=lmp->atom->mass;
+    int* type=lmp->atom->type;
+    int nlocal=lmp->atom->nlocal;
+    double kT= Temp; //boltzmann factor is one for standard lammps units
+    for (int i =0; i<nlocal; i++){
+        double scale = sqrt( kT/m[type[i]]);
+        v[i][0]=gauss(rng)*scale;
+        v[i][1]=gauss(rng)*scale;
+        v[i][2]=gauss(rng)*scale;
+    }
 }
 
 LAMMPS_NS::LAMMPS* InitializeLammps(Context* ctx,std::string newfolder, std::string propername, std::string structurefile, int feathered ){//little plumed wordplay over here
@@ -205,6 +253,121 @@ LAMMPS_NS::LAMMPS* InitializeLammps(Context* ctx,std::string newfolder, std::str
     }
     return lmp;
 }
+LAMMPS_NS::LAMMPS* RestartLammps(Context* ctx,std::string newfolder, std::string propername, int feathered){
+    int argc=0;
+    char **argv =nullptr;
+    LAMMPS_NS::LAMMPS* lmp = new LAMMPS_NS::LAMMPS(argc, argv, ctx->get_comm());
+    std::string cmd="read_restart " + newfolder +"/" + propername+".cpt";
+    lmp->input->one(cmd.c_str());
+    lmp->input->one("reset_timestep 0"); 
+    cmd ="include " + newfolder + "/" + propername + ".mdp";
+    lmp->input->one(cmd.c_str());
+    if (feathered ==1){
+        cmd = "fix cv all plumed plumedfile " + newfolder + "/" + propername +".dat outfile " + newfolder + "/" + propername + ".log";
+        lmp->input->one(cmd.c_str());
+    }
+    return lmp;
+}
+void writeCPT(LAMMPS_NS::LAMMPS* lmp, std::string newfolder, std::string propername){
+    std::string restartFile = newfolder + "/" + propername + ".cpt"; 
+    if (std::filesystem::exists(restartFile)){
+        std::filesystem::remove(restartFile);
+    }
+    std::string cmd="write_restart " + restartFile;
+    lmp->input->one(cmd.c_str()); 
+}
+void lammpsrunner(Context* ctx,LAMMPS_NS::LAMMPS* lmp, OrderParameter* op, int usePLMD, long long nsteps, long long runtime, int direction, int runtype, double leftbound, double rightbound,std::string newfolder, std::string propername, int strides, double deltaT){
+    const int rank = ctx->rank();
+    stop_requested = 0;
+    std::signal(SIGUSR1, signal_handler);
+    std::signal(SIGTERM, signal_handler);
+    std::signal(SIGUSR2, signal_handler);
+    int exit = 0;
+
+    if (usePLMD ==1){
+        long long paso=0;
+        double time;
+        double c;
+        std::string RColvarPath = newfolder + "/RC" + propername;
+        std::string ColvarPath = newfolder + "/C" + propername;
+        long long remaining = nsteps - runtime;
+        long long largest = strides; //break it down into stride size steps for cpt safety
+        bool first = true;
+        while (remaining>0){ //this architecture is so that a user can use nsteps larger than what lammps accepts as max steps
+            long long now =std::min(remaining, largest);
+            std::string correr = "run " + std::to_string(now) + (first ? " pre yes post no" : " pre no post no");
+            lmp->input->one(correr.c_str());
+            if (stop_requested){
+                writeCPT(lmp, newfolder, propername);
+                return;
+            }
+            first = false;
+            remaining -=now;
+
+            if (rank ==0 && runtype !=4){
+                std::string which;
+                int use = 0;
+                if (std::filesystem::exists(RColvarPath)){
+                    which = RColvarPath;
+                    use = 1;
+                }else if(std::filesystem::exists(ColvarPath)){
+                    which = ColvarPath;
+                    use =1;
+                }
+                if (use ==1){
+                    auto result = lastorderparameter(which);
+                    time = result.first; //no need to convert to nsteps here
+                    paso = time/deltaT;
+                    c= result.second;
+                    std::cout<<c<<std::endl;
+                    int done = computecriteria(paso,nsteps, c, direction, leftbound, rightbound, runtype);
+                    if (done){
+                        exit =1;
+                    }
+                }
+            }
+            ctx->barrier();
+            ctx->bcast_int(exit, 0);
+            if (exit==1){
+                return;
+            }
+        }
+    }else{
+        std::cout<<"runtype: "<< runtype<<std::endl;
+        std::string prelim = "/C";
+        if (std::filesystem::exists(newfolder + "/C" + propername)){
+            prelim = "/RC";
+        }
+        
+        long long paso = runtime;
+        int micondicion = 0;
+        while (micondicion ==0){
+            long long now = std::min((long long)strides, nsteps - paso);
+            std::string cmd = "run " +std::to_string(now)+ " pre no post no";
+            lmp->input->one(cmd.c_str());
+            if (stop_requested){
+                writeCPT(lmp, newfolder, propername);
+                return;
+            }
+            paso += now; 
+            double orderparam = op->update(lmp);
+            if (rank ==0){
+                Colvar_Writer(newfolder + prelim +propername, paso, orderparam ,deltaT);
+            }
+            ctx->barrier();
+            std::cout<<"Order Parameter "<< op<<std::endl;
+            micondicion = computecriteria(paso, nsteps, orderparam, direction, leftbound, rightbound, runtype);
+            std::cout<<micondicion<<std::endl;
+        }
+    }
+}
+
+#endif
+
+
+
+
+
 
 int getenv_int(const char* name, int default_value) {
     const char* val = std::getenv(name);
@@ -246,28 +409,6 @@ void RUNGMX(std::string nom, int tipo, Context* ctx ){
     std::cout << "[InitializeGMX] grompp exited with code: " << ret << std::endl;
     std::cout.flush();
 }
-void DestroyLammps(LAMMPS_NS::LAMMPS*& lmp)
-{
-    if (lmp) {
-        delete lmp;
-        lmp = nullptr;  
-    }
-}
-LAMMPS_NS::LAMMPS* RestartLammps(Context* ctx,std::string newfolder, std::string propername, int feathered){
-    int argc=0;
-    char **argv =nullptr;
-    LAMMPS_NS::LAMMPS* lmp = new LAMMPS_NS::LAMMPS(argc, argv, ctx->get_comm());
-    std::string cmd="read_restart " + newfolder +"/" + propername+".cpt";
-    lmp->input->one(cmd.c_str());
-    lmp->input->one("reset_timestep 0"); 
-    cmd ="include " + newfolder + "/" + propername + ".mdp";
-    lmp->input->one(cmd.c_str());
-    if (feathered ==1){
-        cmd = "fix cv all plumed plumedfile " + newfolder + "/" + propername +".dat outfile " + newfolder + "/" + propername + ".log";
-        lmp->input->one(cmd.c_str());
-    }
-    return lmp;
-}
 std::string trim(const std::string& s){//whitespace remover
     size_t start = s.find_first_not_of(" \t\r\n");
     size_t end = s.find_last_not_of(" \t\r\n");
@@ -282,13 +423,7 @@ std::vector<std::string> pathlinereader(std::string Line){
     }
     return output;
 }
-std::pair<double,double> lastorderparameter(std::string colvar){ //so truthfully this need not be its own function, however, there's a good chance that LAMMPS and plumed print op in very different ways, this will help provide some uniformity
-    std::string lastline = lastdataline(colvar);
-    std::stringstream stream(lastline);
-    double time, value;
-    stream>>time>>value;
-    return {time, value};
-}
+
 std::vector<std::string> listdirStart(std::string path, std::string start){
     std::vector<std::string> files;
     for (const auto &entry : std::filesystem::directory_iterator(path)){
@@ -673,129 +808,9 @@ void wipe(std::string folder, std::string propername) //remove those files in th
         }
     }
 }
-void Colvar_Writer(std::string nombre, double time, double OP, double deltaT){
-    std::ofstream out(nombre, std::ios::app);
-    out<< time*deltaT<< " "<< OP<< " "<< std::endl;
-}
-int computecriteria(long long paso, long long nsteps, double orderparam,  int direction, double leftbound, double rightbound, int runtype){ //this function implements the 'handedness' of basin termination criteria
-    if (paso>=nsteps){
-        return 1;// okay so we should never be greater than but better safe than sorry
-    }
-    if (runtype ==1){ //right handed FFS
-        if (orderparam*direction >= direction*rightbound){
-            return 1;
-        }else{
-            return 0;
-        }
-    }
-    if (runtype ==2){ //left handed FFS
-        if (orderparam*direction<= direction*leftbound){
-            return 1;
-        }else{
-            return 0;
-        }
-    }if (runtype ==3){//standard FFS for probabilistic step
-        if (orderparam*direction<= direction*leftbound || orderparam*direction>=direction*rightbound){
-            return 1;
-        }else{
-            return 0;
-        }
-    }// note that in this workflow I don't have a condition for runtype 4 other than nsteps
-    return 0;
-}
-void writeCPT(LAMMPS_NS::LAMMPS* lmp, std::string newfolder, std::string propername){
-    std::string restartFile = newfolder + "/" + propername + ".cpt"; 
-    if (std::filesystem::exists(restartFile)){
-        std::filesystem::remove(restartFile);
-    }
-    std::string cmd="write_restart " + restartFile;
-    lmp->input->one(cmd.c_str()); 
-}
-void lammpsrunner(Context* ctx,LAMMPS_NS::LAMMPS* lmp, OrderParameter* op, int usePLMD, long long nsteps, long long runtime, int direction, int runtype, double leftbound, double rightbound,std::string newfolder, std::string propername, int strides, double deltaT){
-    const int rank = ctx->rank();
-    stop_requested = 0;
-    std::signal(SIGUSR1, signal_handler);
-    std::signal(SIGTERM, signal_handler);
-    std::signal(SIGUSR2, signal_handler);
-    int exit = 0;
 
-    if (usePLMD ==1){
-        long long paso=0;
-        double time;
-        double c;
-        std::string RColvarPath = newfolder + "/RC" + propername;
-        std::string ColvarPath = newfolder + "/C" + propername;
-        long long remaining = nsteps - runtime;
-        long long largest = strides; //break it down into stride size steps for cpt safety
-        bool first = true;
-        while (remaining>0){ //this architecture is so that a user can use nsteps larger than what lammps accepts as max steps
-            long long now =std::min(remaining, largest);
-            std::string correr = "run " + std::to_string(now) + (first ? " pre yes post no" : " pre no post no");
-            lmp->input->one(correr.c_str());
-            if (stop_requested){
-                writeCPT(lmp, newfolder, propername);
-                return;
-            }
-            first = false;
-            remaining -=now;
 
-            if (rank ==0 && runtype !=4){
-                std::string which;
-                int use = 0;
-                if (std::filesystem::exists(RColvarPath)){
-                    which = RColvarPath;
-                    use = 1;
-                }else if(std::filesystem::exists(ColvarPath)){
-                    which = ColvarPath;
-                    use =1;
-                }
-                if (use ==1){
-                    auto result = lastorderparameter(which);
-                    time = result.first; //no need to convert to nsteps here
-                    paso = time/deltaT;
-                    c= result.second;
-                    std::cout<<c<<std::endl;
-                    int done = computecriteria(paso,nsteps, c, direction, leftbound, rightbound, runtype);
-                    if (done){
-                        exit =1;
-                    }
-                }
-            }
-            ctx->barrier();
-            ctx->bcast_int(exit, 0);
-            if (exit==1){
-                return;
-            }
-        }
-    }else{
-        std::cout<<"runtype: "<< runtype<<std::endl;
-        std::string prelim = "/C";
-        if (std::filesystem::exists(newfolder + "/C" + propername)){
-            prelim = "/RC";
-        }
-        
-        long long paso = runtime;
-        int micondicion = 0;
-        while (micondicion ==0){
-            long long now = std::min((long long)strides, nsteps - paso);
-            std::string cmd = "run " +std::to_string(now)+ " pre no post no";
-            lmp->input->one(cmd.c_str());
-            if (stop_requested){
-                writeCPT(lmp, newfolder, propername);
-                return;
-            }
-            paso += now; 
-            double orderparam = op->update(lmp);
-            if (rank ==0){
-                Colvar_Writer(newfolder + prelim +propername, paso, orderparam ,deltaT);
-            }
-            ctx->barrier();
-            std::cout<<"Order Parameter "<< op<<std::endl;
-            micondicion = computecriteria(paso, nsteps, orderparam, direction, leftbound, rightbound, runtype);
-            std::cout<<micondicion<<std::endl;
-        }
-    }
-}
+
 int Repeater(std::string newfolder, int index, int total){
     std::ifstream inputFile(newfolder +"/iterationtracker.txt");
     int number=0;
@@ -925,11 +940,13 @@ LAMMPS_NS::LAMMPS* firstgo(Context* ctx , std::string structurefiles, std::strin
     //randomize seed, come back to this 
     //Here for gromacs I delete all the unncessary files come back to here if there are any in LAMMPS
     if (calculator ==0){
+#ifdef USE_LAMMPS
         lmp = InitializeLammps(ctx,newfolder, propername, structurefiles+"/"+inputfile, usePLMD); //gotta add the directory here as I removed it from listdir
         //gotta get number of steps as an input, later will check colvar files to see how many steps are already completed.
         lammpsrunner(ctx,lmp, op, usePLMD, nsteps, 0, direction, runtype,leftbound, rightbound, newfolder, propername, strides,deltaT );
         writeCPT(lmp, newfolder,propername);
         ctx->barrier();
+#endif
     }else{
         if (trail.find("gro") != std::string::npos){
             //if this is the case we don't have to feed in a cpt file
@@ -1272,13 +1289,12 @@ void Basin(Context* ctx,std::string Outputfolder, std::string runid, double left
                 }
             }
             if (calculator ==0){
+#ifdef USE_LAMMPS
                 lmp = RestartLammps(ctx,newfolder, propername, usePLMD);
-            }//in basin don't grompp unless there's an issue
-            //now run remaining steps
-            if (calculator ==0){
                 lammpsrunner(ctx, lmp, op.get(), usePLMD, nsteps, runtime, direction, runtype, leftbound, rightbound, newfolder, propername, strides,deltaT);
                 writeCPT(lmp, newfolder, propername);
                 ctx->barrier();
+#endif
             }else{
                 RUNGMX(newfolder + "/" + propername, 1,ctx);
                 ctx->barrier();
@@ -1411,10 +1427,12 @@ void Probabilistic(Context* ctx,std::string Outputfolder, std::string runid, dou
                         }
                     }
                     if (calculator ==0){
+#ifdef USE_LAMMPS
                         lmp = RestartLammps(ctx,newfolder, propername, usePLMD);
                         lammpsrunner(ctx,lmp,op.get(), usePLMD, nsteps, 0, direction, runtype, leftbound, rightbound, newfolder, propername, strides,deltaT);
                         writeCPT(lmp, newfolder, propername);
                         ctx->barrier();
+#endif
                     }else{
                         std::string root = newfolder + "/" + propername;
                         std::string ic = "initialconfiguration_";
@@ -1554,13 +1572,11 @@ void Exploration(Context* ctx, std::string Outputfolder, std::string runid, std:
                 }
             }
             if (calculator ==0){
-                lmp = RestartLammps(ctx,newfolder, propername,usePLMD);
-            }// no gromacs grompp command in this case
-
-            //now run remaining steps
-            if (calculator ==0){
-                lammpsrunner(ctx,lmp, op.get(), usePLMD, nsteps, runtime, direction, runtype, leftbound, rightbound, newfolder, propername, strides,deltaT);
+#ifdef USE_LAMMPS
+                lmp = RestartLammps(ctx,newfolder, propername,usePLMD); // no gromacs grompp command in this case
+                lammpsrunner(ctx,lmp, op.get(), usePLMD, nsteps, runtime, direction, runtype, leftbound, rightbound, newfolder, propername, strides,deltaT);//now run remaining steps
                 writeCPT(lmp, newfolder, propername);
+#endif
             }else{
                 RUNGMX(newfolder + "/" + propername,1,ctx);
                 ctx->barrier();
@@ -1885,7 +1901,11 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
     //part one packages
     std::string OPENMPI  = ask<std::string>("OpenMPI package name");
     std::string FFTW = ask<std::string>("FFTW package name");
-    std::string gromacslocation = ask<std::string>("Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs)",[](const std::string& s){return std::filesystem::exists(s+"/bin") && std::filesystem::is_directory(s+"/bin");});//check for bin
+    int MDengine = ask<int>("MD Calculator (0: LAMMPS, 1: GROMACS)",[](int x){return x==0 || x==1;});
+    std::string gromacslocation="";
+    if (MDengine ==1){
+        gromacslocation = ask<std::string>("Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs)",[](const std::string& s){return std::filesystem::exists(s+"/bin") && std::filesystem::is_directory(s+"/bin");});//check for bin
+    }
     std::string plumedlocation = ask<std::string>("Plumed Installation Location (ex: /home/mal258/ManuelsPlumed)",[](const std::string& s){return std::filesystem::exists(s+"/bin") && std::filesystem::is_directory(s+"/bin");});
     int isPost= ask<int>("Postprocessing (Yes: 1, No: 2)",[](int x){return x==1 || x==2;});
     if (isPost ==1){
@@ -1904,7 +1924,6 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
             processingbash(OPENMPI, FFTW, gromacslocation, plumedlocation, partition, runtime, email, runtype, runfolder, newfoldername, prior);
             return;
         }else{//export from cpt requires processedfolder, rootdirectory, outputfolder, MDengine, and constant topology
-            int MDengine = ask<int>("MD Calculator (0: LAMMPS, 1: GROMACS)",[](int x){return x==0 || x==1;});
             int constanttopology=0;
             if (MDengine ==1){
                 constanttopology = ask<int>("Constant Topology? (one index and topology file in working directory applies to all structures), 0: no, 1: yes",[](const int x){if (x != 0 && x != 1) return false;if (x == 1){return std::filesystem::exists("topol.top") && std::filesystem::exists("index.ndx");}return true;});
@@ -1939,9 +1958,7 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
     std::string Rruntime = ask<std::string>("Runner Max Run Time (D-HH:MM:SS)",[](const std::string& s){std::regex r(R"((\d+-)?\d{1,2}:\d{2}:\d{2})");return std::regex_match(s, r);});
     int cores = ask<int>("Runner Cores",[](int x){return x>0;});
     //run info
-    double deltaT = ask<double>("MD Step Size (ps)",[](double x){return x>0;});
-    int MDengine = ask<int>("MD Calculator (0: LAMMPS, 1: GROMACS)",[](int x){return x==0 || x==1;});
-    
+    double deltaT = ask<double>("MD Step Size (ps)",[](double x){return x>0;});    
     //preemptive mdp check
     if (!std::filesystem::exists("ffs.mdp")){
         std::cout<<"Missing ffs.mdp file in working directory"<<std::endl; //I realize this takes up a lot of lines and is kinda a convoluted part but better to fail early rather than cause an issue on a cluster
@@ -2741,6 +2758,7 @@ void convertfromCPT(Context* ctx,std::string processedfolder, std::string rootdi
         std::string cptfile = processedfolder + "/" + file;
         int nom = std::stoi(file.substr(0,file.find('.')));
         if (MDengine ==0){
+#ifdef USE_LAMMPS
             int argc = 0;
             char **argv = nullptr;
             LAMMPS_NS::LAMMPS* lmp = new LAMMPS_NS::LAMMPS(argc, argv, ctx->get_comm());
@@ -2750,6 +2768,7 @@ void convertfromCPT(Context* ctx,std::string processedfolder, std::string rootdi
             lmp->input->one("run 0");
             lmp->input->one("undump exportdump");
             delete lmp ;
+#endif
             //lammps case, won't pass root directory in this case
         }else{
             std::string outputname = outputfolder + "/" + file.substr(0, file.find('.')) + ".gro";
@@ -2781,8 +2800,13 @@ int main(int argc, char** argv) { //okay here we get the inputs and decide the r
         int constanttopology = std::stoi(argv[15]);
         std::unique_ptr<Context> ctx; //initialize
         if (MDenginetype ==0){
+#ifdef USE_LAMMPS
             MPI_Init(&argc, &argv);
             ctx = std::make_unique<ParallelContext>(MPI_COMM_WORLD);
+#else
+            std::cerr << "ERROR: Built without LAMMPS support" << std::endl;
+            return 1;
+#endif
         }else{
             //MPI_Init(&argc, &argv);
             ctx = std::make_unique<SerialContext>();
