@@ -30,6 +30,6 @@ do_md_trajectory_writing(fplog,
 ``` 
 
 ### Installation
-To install this version of GROMACS, download GROMACS 2022.5, swap its `/src/gromacs/mdrun/md.cpp` file for [md.cpp](/ModifiedGromacs/md.cpp), and then proceed with the installation.
+To install this version of GROMACS, download GROMACS 2022.5, swap its `/src/gromacs/mdrun/md.cpp` file for [md.cpp](/ModifiedGromacs/md.cpp), and then proceed with the installation. Ensure this build is linked with PLUMED. 
 
 
