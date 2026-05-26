@@ -22,7 +22,7 @@ See [Algorithms](docs/algorithms.md) for a detailed description of each phase.
 ## Dependencies
 
 - LAMMPS (with PLUMED)
-- AdSamp-modified GROMACS (see note below)
+- AdSamp-modified GROMACS with PLUMED (see note below)
 - PLUMED
 - OpenMPI
 - FFTW
@@ -33,6 +33,7 @@ See [Algorithms](docs/algorithms.md) for a detailed description of each phase.
 ---
 
 ## Installation
+Install LAMMPS with PLUMED, the modified GROMACS build with PLUMED,
 
 Load OpenMPI, FFTW, the modified GROMACS build, and PLUMED, then compile with:
 
