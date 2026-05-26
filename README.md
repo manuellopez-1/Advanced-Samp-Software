@@ -21,25 +21,51 @@ See [Algorithms](docs/algorithms.md) for a detailed description of each phase.
 
 ## Dependencies
 
-- LAMMPS (with PLUMED)
-- AdSamp-modified GROMACS with PLUMED (see note below)
+AdSamp can be compiled in either **LAMMPS mode** or **GROMACS mode**.
+
+### LAMMPS mode
+Requires:
+
+- LAMMPS patched with PLUMED
 - PLUMED
 - OpenMPI
 - FFTW
 
+### No LAMMPS mode
+Requires:
+
+- Custom GROMACS patched with PLUMED [Custom Gromacs Installation](ModifiedGromacs/README.md) 
+- OpenMPI
+- FFTW
+
+> GROMACS mode does NOT require LAMMPS to be installed.
+
+> LAMMPS mode does NOT require GROMACS to be installed.
+
 > AdSamp requires a modified build of GROMACS that extends its internal interruption mechanism to save checkpoints immediately upon any interruption signal. This is required for accurate FFS saves and provides a significant speedup over frequent periodic saves. See [MD Engines](docs/MDengines.md) for details.
 
-> See [Custom Gromacs Installation](ModifiedGromacs/Installation.md) for installation information.
----
+> See [Custom Gromacs Installation](ModifiedGromacs/README.md) for installation information.
 
 ## Installation
-Install LAMMPS with PLUMED, the modified GROMACS build with PLUMED,
 
-Load OpenMPI, FFTW, the modified GROMACS build, and PLUMED, then compile with:
+AdSamp can be compiled in two different modes depending on the MD engine being used.
 
+### GROMACS build
+
+For GROMACS simulations, compile with:
+
+```bash
+g++ -std=c++17 AdSamp.cpp orderparameterpicker.cpp -o AdSamp -I.
 ```
-mpicxx -std=c++17 AdSamp.cpp orderparameterpicker.cpp -o AdSamp -I. -I/pathtolammps/include -L/pathtolammps/lib64 -llammps -Wl,-rpath,/pathtolammps/lib64
+
+### LAMMPS build
+
+For LAMMPS simulations, compile with:
+
+```bash
+mpicxx -std=c++17 -DUSE_LAMMPS AdSamp.cpp orderparameterpicker.cpp -o AdSamp -I. -I/pathtolammps/include -L/pathtolammps/lib64 -llammps -Wl,-rpath,/pathtolammps/lib64
 ```
+
 
 All further interactions with the software use:
 
@@ -47,7 +73,7 @@ All further interactions with the software use:
 ./AdSamp
 ```
 
----
+
 
 ## Quick Start
 
@@ -62,7 +88,6 @@ AdSamp is controlled through a single binary that operates in different modes de
 
 See [Running a Full Simulation](docs/MultiStepWorkflow.md) for the complete multi-step workflow.
 
----
 
 ## Input Files
 
@@ -74,7 +99,6 @@ Before running the login flow, ensure the following are in place:
 
 See [Input Files](docs/Inputfiles.md) for full requirements and examples.
 
----
 
 ## Tutorials
 
@@ -98,7 +122,6 @@ There are three included tutorials AdSamp, each of these provides examples for r
 | [Software Internals](docs/InternalSoftwareOperation.md) | Login mode, controller, simulation run mode, binary export |
 | [Custom OP](docs/customorderparameter.md) | Creating and using a custom order parameter script for LAMMPS (no PLUMED) |
 
----
 
 ## Repository Structure
 
@@ -125,7 +148,6 @@ AdSamp/
 -README.md
 ```
 
----
 
 ## Authors
 
