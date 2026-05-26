@@ -55,7 +55,7 @@ AdSamp can be compiled in two different modes depending on the MD engine being u
 For GROMACS simulations, compile with:
 
 ```bash
-g++ -std=c++17 AdSamp.cpp orderparameterpicker.cpp -o AdSamp -I.
+mpicxx -std=c++17 AdSamp.cpp orderparameterpicker.cpp -o AdSamp -I.
 ```
 
 ### LAMMPS build
