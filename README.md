@@ -26,7 +26,7 @@ AdSamp can be compiled in either **LAMMPS mode** or **No LAMMPS mode**.
 ### LAMMPS mode
 Requires:
 
-- LAMMPS patched with PLUMED
+- LAMMPS patched with PLUMED ([LAMMPS Installation](LAMMPSinstallation.md))
 - PLUMED
 - OpenMPI
 - FFTW
