@@ -2160,17 +2160,21 @@ bool isJobRunning(int jobid) {
     if (!pipe) return false;
     char buffer[256];
     std::string target = std::to_string(jobid);
+    int running = 0;
     while (fgets(buffer, sizeof(buffer), pipe)) {
         std::string line(buffer);
         if (!line.empty() && line.back() == '\n')
             line.pop_back();
         if (line == target || line.rfind(target + "_", 0) == 0) {
-            pclose(pipe);
-            return true;
+            if (line.find("launch failed requeued held") != std::string::npos) {
+                std::system(("scontrol release " + id).c_str()); //Grace partition has a job launch held problem gonna resolve it by releasing it
+            }else{
+                running =1;
+            }
         }
     }
     pclose(pipe);
-    return false;
+    return running==1;  //true if one is properly running false otherwise
 }
 int submitjob(std::string scriptname){
     std::string cmd = "sbatch " + scriptname;
