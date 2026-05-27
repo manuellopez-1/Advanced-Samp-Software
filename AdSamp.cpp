@@ -2155,7 +2155,7 @@ std::string getSlurmJobID() {
 }
 
 bool isJobRunning(int jobid) {
-    std::string cmd = "squeue -h -r -j " + std::to_string(jobid) + " -o \"%i\""; //this tests if a job is currently running
+    std::string cmd = "squeue -h -r -j " + std::to_string(jobid) + " -o \"%i %R\"";//this tests if a job is currently running
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) return false;
     char buffer[256];
@@ -2167,7 +2167,7 @@ bool isJobRunning(int jobid) {
             line.pop_back();
         if (line == target || line.rfind(target + "_", 0) == 0) {
             if (line.find("launch failed requeued held") != std::string::npos) {
-                std::system(("scontrol release " + id).c_str()); //Grace partition has a job launch held problem gonna resolve it by releasing it
+                std::system(("scontrol release " + line.substr(0, line.find(' '))).c_str()); //Grace partition has a job launch held problem gonna resolve it by releasing it
             }else{
                 running =1;
             }
