@@ -1716,14 +1716,11 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     controller<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     controller<<"        . /etc/bashrc"<<std::endl;
     controller << "fi" << std::endl;
-    controller<< "if ! [[ \"$PATH\" =~ \"$HOME/.local/bin:$HOME/bin:\" ]]" << std::endl; 
-    controller<<"then"<<std::endl;
-    controller<<"    PATH=\"$HOME/.local/bin:$HOME/bin:$PATH\"" << std::endl;
-    controller<<"fi"<<std::endl;
+    controller<< "module purge"<<std::endl;
     controller<<"module load "<<OPENMPI<<std::endl;
     controller<<"module load "<<FFTW<<std::endl;
-    controller<<"export PATH=$PATH:/"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
-    controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
+    controller<<"export PATH=$PATH:"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
+    controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
     controller<<"trap \"echo -n 'TIMEOUT @ '; date; echo 'Resubmitting...'; scontrol requeue ${SLURM_JOB_ID}\" 10"<<std::endl;
     controller<<commandline<<std::endl;
     controller.close();
@@ -1743,14 +1740,11 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     individual<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     individual<<"        . /etc/bashrc"<<std::endl;
     individual << "fi" << std::endl;
-    individual<< "if ! [[ \"$PATH\" =~ \"$HOME/.local/bin:$HOME/bin:\" ]]" << std::endl; 
-    individual<<"then"<<std::endl;
-    individual<<"    PATH=\"$HOME/.local/bin:$HOME/bin:$PATH\"" << std::endl;
-    individual<<"fi"<<std::endl;
+    individual<<"module purge" <<std::endl;
     individual<<"module load "<<OPENMPI<<std::endl;
     individual<<"module load "<<FFTW<<std::endl;
-    individual<<"export PATH=$PATH:/"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
-    individual<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
+    individual<<"export PATH=$PATH:"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
+    individual<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
     if (MDengine ==0){
         individual << "srun --cpu-bind=none -n " << cores<< " ./AdSamp "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<<"${SLURM_ARRAY_TASK_ID} "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
     }
@@ -1852,14 +1846,11 @@ void processingbash(std::string OPENMPI, std::string FFTW, std::string gromacslo
     controller<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     controller<<"        . /etc/bashrc"<<std::endl;
     controller << "fi" << std::endl;
-    controller<< "if ! [[ \"$PATH\" =~ \"$HOME/.local/bin:$HOME/bin:\" ]]" << std::endl; 
-    controller<<"then"<<std::endl;
-    controller<<"    PATH=\"$HOME/.local/bin:$HOME/bin:$PATH\"" << std::endl;
-    controller<<"fi"<<std::endl;
+    controller<<"module purge"<<std::endl;
     controller<<"module load "<<OPENMPI<<std::endl;
     controller<<"module load "<<FFTW<<std::endl;
-    controller<<"export PATH=$PATH:/"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
-    controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
+    controller<<"export PATH=$PATH:"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
+    controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
 
     controller<<commandline<<std::endl;
 }
@@ -1880,14 +1871,11 @@ void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromac
     controller<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     controller<<"        . /etc/bashrc"<<std::endl;
     controller << "fi" << std::endl;
-    controller<< "if ! [[ \"$PATH\" =~ \"$HOME/.local/bin:$HOME/bin:\" ]]" << std::endl; 
-    controller<<"then"<<std::endl;
-    controller<<"    PATH=\"$HOME/.local/bin:$HOME/bin:$PATH\"" << std::endl;
-    controller<<"fi"<<std::endl;
+    controller << "module purge" << std::endl;
     controller<<"module load "<<OPENMPI<<std::endl;
     controller<<"module load "<<FFTW<<std::endl;
-    controller<<"export PATH=$PATH:/"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
-    controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
+    controller<<"export PATH=$PATH:"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
+    controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
     
     if (MDEngine ==0){
         controller << "srun -n 1 ./AdSamp CONVERT " +safe(postprocessedfolder) + " "+ safe(rootdirectory) + " "+ safe(newfoldername) + " "+ std::to_string(MDEngine) + " " + std::to_string(constanttopology)<<std::endl; //add in an extra input so not same length as controller
