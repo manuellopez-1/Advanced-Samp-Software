@@ -2167,6 +2167,7 @@ bool isJobRunning(int jobid) {
             line.pop_back();
         if (line == target || line.rfind(target + "_", 0) == 0) {
             if (line.find("launch failed requeued held") != std::string::npos) {
+                std::cout<<"scontrol release " + line.substr(0, line.find(' '))<<std::endl;
                 std::system(("scontrol release " + line.substr(0, line.find(' '))).c_str()); //Grace partition has a job launch held problem gonna resolve it by releasing it
             }else{
                 running =1;
