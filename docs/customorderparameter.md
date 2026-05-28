@@ -138,7 +138,7 @@ if (name == "AtomDistance")
 
 **Compile Command`** — Add the Custom OP to the executable
 ```
-mpicxx -std=c++17 AdSamp.cpp orderparameterpicker.cpp AtomDistance.cpp -o AdSamp -I. -I/pathtolammps/include -L/pathtolammps/lib64 -llammps -Wl,-rpath,/pathtolammps/lib64
+mpicxx -std=c++17 -DUSE_LAMMPS AdSamp.cpp orderparameterpicker.cpp AtomDistance.cpp -o AdSamp -I. -I/home/mal258/ManuelsLammps/include -L/home/mal258/ManuelsLammps/lib64 -llammps -Wl,-rpath,/home/mal258/ManuelsLammps/lib64
 ```
 
 To use a different pair of atoms, change `TAG1` and `TAG2` in `AtomDistance.hpp` to the desired global atom IDs. To generalise to a group of atoms (e.g. a centre of mass), accumulate weighted sums in the local arrays and change the final reduction and return expression accordingly.
