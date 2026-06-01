@@ -63,7 +63,7 @@ Timestep line
 
 > **Do not include a velocity line in the LAMMPS ffs.mdp.** Velocity initialization is handled internally by AdSamp and an explicit velocity line will cause issues.
 
-Sample `ffs.mdp` files may be found in [Sample GROMACS ffs.mdp](assets/samplefiles/Gromacsffs.mdp) and [Sample LAMMPS ffs.mdp](assets/samplefiles/lammpsffs.mdp)
+Sample `ffs.mdp` files may be found in [Sample GROMACS ffs.mdp](/tutorials/GROMACS/ffs.mdp) and [Sample LAMMPS ffs.mdp](/tutorials/LAMMPSwithPLUMED/ffs.mdp)
 
 
 ## Order Parameter File
@@ -81,7 +81,7 @@ Your `plumed.dat` must contain the following sections. AdSamp checks for all thr
 | `PRINT` | Outputs the time-dependent parameter to a file |
 | `FLUSH` | Forces PLUMED to write output at a defined interval |
 
-AdSamp modifies the targets and output paths in these sections on a per-trajectory basis, so the structure must be uniform across runs. See [Example PLUMED script](assets/samplefiles/modelplumed.png) for a working example.
+AdSamp modifies the targets and output paths in these sections on a per-trajectory basis, so the structure must be uniform across runs. See [Example PLUMED script](/tutorials/GROMACS/plumed.dat) for a working example.
 
 > The order of lines within the `COMMITTOR` block is also checked at login.
 
@@ -95,7 +95,7 @@ If PLUMED does not cover your use case, custom order parameters can be defined d
 3. Add both files to the compile command
 4. Specify the function name when providing run inputs at login
 
- See [Example Custom OP scripts](assets/samplefiles/customOPS/) for a working example.
+ See [Example Custom OP scripts](/docs/customorderparameter.md) for a working example.
 
  ### Note on software's capacity to recognize faulty input files
 
