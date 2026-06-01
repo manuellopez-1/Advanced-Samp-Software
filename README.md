@@ -151,4 +151,4 @@ AdSamp/
 
 ## Authors
 
-Manuel Alejandro López, Betul Uralcan, Amir Haji-Akbari
+Manuel Alejandro López, Betül Uralcan, Amir Haji-Akbari
