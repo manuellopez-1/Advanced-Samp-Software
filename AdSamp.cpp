@@ -1698,7 +1698,7 @@ std::string safe(const std::string &s) {
 
 //this function makes the bash scripts
 void writebash(std::string CPartition, std::string Cruntime,std::string email, std::string RPartition, std::string Rruntime, int cores, int MDengine, std::string CUSTOMOP, std::string Outputfolder, int runtype, int stride, std::string Delimeter, std::string structurefilesloc, std::string rootdirectory, long long nsteps, int batchsize, int perfoldertrajectories, double leftbound, double rightbound, int maxcrossings,std::string gromacslocation, std::string plumedlocation, std::string OPENMPI, std::string FFTW,double deltaT, int constanttopology){
-    std::string commandline ="srun -n 1 ./AdSamp " +std::to_string(runtype) + " "+ safe(Outputfolder) + " "+ std::to_string(leftbound) + " "+ std::to_string(rightbound) +" "+ std::to_string(maxcrossings);
+    std::string commandline ="srun -n 1 ./AdSamp " +std::to_string(runtype) + " "+ safe(Outputfolder) + " "+ std::to_string(leftbound) + " "+ std::to_string(rightbound) +" "+ std::to_string(maxcrossings)+" &";
     //adjust to also pass the batchsize and runs per trajectory
     std::ofstream controller("AdSampControl.sh");
     controller<<"#!/bin/bash"<<std::endl;
@@ -1723,6 +1723,7 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
     controller<<"trap \"echo -n 'TIMEOUT @ '; date; echo 'Resubmitting...'; scontrol requeue ${SLURM_JOB_ID}\" 10"<<std::endl;
     controller<<commandline<<std::endl;
+    controller<<"wait"<<std::endl;
     controller.close();
 
 
@@ -2403,8 +2404,10 @@ void controller(int simtype, std::string outputfolder, double leftbound, double 
     ncrossings = checkcrossings(simtype, outputfolder, leftbound, rightbound);
     std::cout<<isJobRunning(subjobs)<<std::endl;
     std::cout<<ncrossings<<" "<<maxcrossings<<std::endl;
-    //std::string cmd = "scancel " + std::to_string(subjobs);
-    //std::system(cmd.c_str()); 
+    if (nocrossings>=maxcrossings){
+        std::string cmd = "scancel " + std::to_string(subjobs);
+        std::system(cmd.c_str()); 
+    }
     
 }
 
