@@ -116,7 +116,7 @@ There are three included tutorials AdSamp, each of these provides examples for r
 | [Algorithms](docs/algorithms.md) | Simulation types that can be specified when interacting with the script: exploration, basin, probabilistic, postprocessing, binary export |
 | [Input Files](docs/Inputfiles.md) | Required input files and naming conventions |
 | [Outputs](docs/outputfiles.md) | Output directory structure, bookkeeping files, postprocessing |
-| [MD Engines](docs/mdengines.md) | LAMMPS vs GROMACS differences, command reference, modified GROMACS |
+| [MD Engines](docs/MDengines.md) | LAMMPS vs GROMACS differences, command reference, modified GROMACS |
 | [HPC Usage](docs/hpc.md) | Scavenge partitions, requeue behavior, live monitoring, tmux |
 | [Running a Full Simulation](docs/multistep.md) | End-to-end FFS workflow across all phases |
 | [Software Internals](docs/InternalSoftwareOperation.md) | Login mode, controller, simulation run mode, binary export |
