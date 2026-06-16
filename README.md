@@ -86,7 +86,7 @@ AdSamp is controlled through a single binary that operates in different modes de
 5. Once complete, re-run `./ManuelsAdvancedSampling` and select postprocessing
 6. Submit `PostProcessing.sh`, then repeat from step 1 for the next phase
 
-See [Running a Full Simulation](docs/MultiStepWorkflow.md) for the complete multi-step workflow.
+See [Running a Full Simulation](docs/multistep.md) for the complete multi-step workflow.
 
 
 ## Input Files
