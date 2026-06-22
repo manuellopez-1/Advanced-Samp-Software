@@ -34,7 +34,6 @@ std::vector<std::string> readlines(const std::string& path) {
 std::vector<double> piLister(std::string path, double delT, double lambda0, int direction, double& farthest,std::vector<double>& mfptlist, std::vector<int>& mfptsucc, int& tjcount, double currentlambda, double nextlambda){
     int bin;
     std::vector<std::string> lines = readlines(path + "/orderparameters.txt"); //find the largest reached order parameter
-    farthest=lambda0;
     std::string name; double value;
     char comma;
     for (std::string line:lines){
@@ -135,13 +134,12 @@ std::vector<double> piLister(std::string path, double delT, double lambda0, int 
             tjcount++;
         }
     }
-    double total=0.0;
-    for (double v:piList){
-        total+=v;
+
+
+    for (double& v:piList){
+        v/= (double) tjcount;
     }
-    for (double&v:piList){
-        v/=total;
-    }
+
 
     for (int l = 0; l<mfptListSize; l++){
         if (mfptsucc[l]>0 ){
@@ -255,7 +253,7 @@ std::vector<double> BasinProbabilityDensity(std::string path, double lambda0, do
         omegatotal+=value;
     }
     for (double&v:omega){
-        v/=omegatotal;
+        v/=(double) total;
     }
     if (total!=0){
         for (double& v:mfptlist){

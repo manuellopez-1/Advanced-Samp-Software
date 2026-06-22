@@ -2404,7 +2404,7 @@ void controller(int simtype, std::string outputfolder, double leftbound, double 
     ncrossings = checkcrossings(simtype, outputfolder, leftbound, rightbound);
     std::cout<<isJobRunning(subjobs)<<std::endl;
     std::cout<<ncrossings<<" "<<maxcrossings<<std::endl;
-    if (nocrossings>=maxcrossings){
+    if (ncrossings>=maxcrossings){
         std::string cmd = "scancel " + std::to_string(subjobs);
         std::system(cmd.c_str()); 
     }
