@@ -1930,7 +1930,7 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
             }
             std::vector<double> Milestones;
             for (int i = 0; i<=numsteps; ++i){
-                std::string mprompt=(i==0)? "λB": "λ" + std::to_string(i);
+                std::string mprompt=(i==0)? "λB": "λ" + std::to_string(i-1);
                 double Milestone = ask<double>(mprompt);
                 Milestones.push_back(Milestone);
             }
