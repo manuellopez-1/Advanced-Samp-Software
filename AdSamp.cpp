@@ -27,6 +27,10 @@
 #include <unordered_map> 
 #include <csignal>
 #include <atomic>
+#include <cmath>
+#include <iomanip>
+#include <limits>
+
 
 volatile sig_atomic_t stop_requested = 0;
 
@@ -1102,7 +1106,7 @@ void DeleteExtraFiles(std::string newfolder, int runtype){
                 std::filesystem::remove(p);
             }
         }
-        std::vector<std::string> endings = {".edr", ".log", ".tpr", ".trr"};
+        std::vector<std::string> endings = {".edr", ".log", ".tpr", ".trr", ".xtc", "_prev.cpt"};
         for (const auto&ending: endings){
             std::vector<std::string> TRRs = listdirEnding(newfolder, ending);
             for (const auto& file: TRRs){
@@ -1886,7 +1890,56 @@ void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromac
     }
 }
 
+void FreeEnergyBash(int numsteps, double deltaT, std::string Outputname, std::vector<double> Milestones,std::vector<std::string> filepaths,std::string partition, std::string runtime, std::string email){
+    std::ofstream Bash("FreeEnergy.sh");
+    Bash<<"#!/bin/bash"<<std::endl;
+    Bash<<"#SBATCH -p "<<partition<<std::endl;
+    Bash<<"#SBATCH -n 1"<<std::endl;
+    Bash<<"#SBATCH -N 1"<<std::endl;
+    Bash<<"#SBATCH -t "<<runtime<<std::endl;
+    if (email != "0"){
+        Bash<<"#SBATCH --mail-user="<<email<<std::endl;
+        Bash<<"#SBATCH --mail-type=end"<<std::endl;
+    }
+    Bash<<"./AdSamp Mathematics 0 "<<numsteps<<" "<<deltaT<<" "<<Outputname;
+    for (const auto& milestone: Milestones ){
+        Bash<<" "<<milestone;
+    }
+    for (const auto& path: filepaths){
+        Bash<<" "<<path;
+    }
+    Bash<<std::endl;
+}
+
 void Login(){ //this will take in user inputs, ensure files are in order, then create a bash script for controller launch
+    int query= ask<int>("Simulation (1), PostProcessing (2), Or Mathematics (3)?",[](int x){return x==1 || x==2 ||x==3;});
+    if (query==3){
+        std::string partition = ask<std::string>("Partition");
+        std::string runtime = ask<std::string>("Max Run Time (D-HH:MM:SS)",[](const std::string& s){std::regex r(R"((\d+-)?\d{1,2}:\d{2}:\d{2})");return std::regex_match(s, r);});
+        std::string email= ask<std::string>("email (write 0 for no email)");
+        //here do the mathematics process
+        int calculationtype= ask<int>("Calculation Type: Free Energy (0)",[](int x){return x==0;}); //for now just have free energy hahaha
+        if (calculationtype ==0){
+            int numsteps = ask<int>("Number of Simulations",[](int x){return x>0;});
+            std::string Outputname = ask<std::string>("Output File Name",[](const std::string& filename) {return !std::filesystem::exists(filename);});
+            std::vector<std::string> filepaths;
+            for (int i = 0; i<numsteps; ++i){
+                std::string prompt=(i==0)?"Basin Postprocessed Directory":"FFS"+std::to_string(i)+" PostProcessed Directory";
+                std::string filepath = ask<std::string>(prompt, [](const std::string& path){if (!std::filesystem::is_directory(path)) return false; for (const auto& entry : std::filesystem::directory_iterator(path)) if (entry.is_regular_file() && entry.path().filename().string()[0] == 'C') return true; return false;});
+                filepaths.push_back(filepath);
+            }
+            std::vector<double> Milestones;
+            for (int i = 0; i<=numsteps; ++i){
+                std::string mprompt=(i==0)? "λB": "λ" + std::to_string(i);
+                double Milestone = ask<double>(mprompt);
+                Milestones.push_back(Milestone);
+            }
+
+            double deltaT = ask<double>("delT (must evenly divide all milestone intervals)",[&Milestones](double x){if (x <= 0) return false;for (size_t i = 1; i < Milestones.size(); ++i){double bins=(Milestones[i]-Milestones[i-1])/x;if (std::abs(bins-std::round(bins)) > 1e-9) return false;}return true;});
+            FreeEnergyBash(numsteps, deltaT, Outputname, Milestones, filepaths,partition, runtime, email);
+            return;
+        }
+    }
     //part one packages
     std::string OPENMPI  = ask<std::string>("OpenMPI package name");
     std::string FFTW = ask<std::string>("FFTW package name");
@@ -1896,8 +1949,7 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
         gromacslocation = ask<std::string>("Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs)",[](const std::string& s){return std::filesystem::exists(s+"/bin") && std::filesystem::is_directory(s+"/bin");});//check for bin
     }
     std::string plumedlocation = ask<std::string>("Plumed Installation Location (ex: /home/mal258/ManuelsPlumed)",[](const std::string& s){return std::filesystem::exists(s+"/bin") && std::filesystem::is_directory(s+"/bin");});
-    int isPost= ask<int>("Postprocessing (Yes: 1, No: 2)",[](int x){return x==1 || x==2;});
-    if (isPost ==1){
+    if (query ==2){
         int isExport = ask<int>("Exporting from binary files? (after postprocessing) (Yes: 1, No: 2)",[](int x){return x==1 || x==2;});
         std::string partition = ask<std::string>("Partition");
         std::string runtime = ask<std::string>("Max Run Time (D-HH:MM:SS)",[](const std::string& s){std::regex r(R"((\d+-)?\d{1,2}:\d{2}:\d{2})");return std::regex_match(s, r);});
@@ -2777,8 +2829,423 @@ void convertfromCPT(Context* ctx,std::string processedfolder, std::string rootdi
 
 }
 
+//going to insert all mathematical operations here, for now only have free energy. Will continue to add more as we go
+//steps to build the free energy, part 1: calculate the MFPT for basin
+
+
+int binfinder(double lambda, double lambda0, double delT, int dir){
+    int bin =std::floor(dir*(lambda-lambda0)/delT);
+    return bin;
+}
+
+
+
+void basindensity(std::vector<double>& density, std::vector<double>& MFPT, double lambda0, double lambdaB, double delT,std::string path){
+    //step one make an array for density and MFPT
+    int dir = lambda0>lambdaB ? 1 : -1; 
+    int length = binfinder(lambda0,lambdaB, delT, dir)+1;
+    density.assign(length, 0.0);
+    MFPT.assign(length, 0.0);  
+    std::vector<int> thisTjMfpt (length); 
+    std::vector<std::string> colvars = listdirStart(path, "C");
+    std::string line;
+    double time, value, prev;
+    int firsttime = 0, totaltrajs=0;
+    for (std::string colvar:colvars){
+        std::ifstream colvarstream(path + "/" +colvar );
+        bool first = true, reset = false;
+        int index = 0;
+        while (std::getline(colvarstream, line)){
+            if (line.empty() || line[0] == '#' || line[0] == '@') {
+                continue;
+            }
+            std::stringstream stream(line); //collect order parameter per line
+            stream>>time>>value;
+            if (first ==true){
+                prev = value; //start keeping track of prev
+                first =false;
+            }
+            
+            if (!reset && (value*dir>lambdaB*dir) && (prev*dir<=lambdaB*dir)){
+                reset = true;
+                firsttime = index-1;
+                thisTjMfpt[0] = 0;
+                for (int l = 1; l<length; l++){
+                    thisTjMfpt[l]=-1;
+                }
+            }
+
+            if (reset){
+                int thisbin = binfinder(value, lambdaB, delT,dir);
+                int lastbin = binfinder(prev, lambdaB, delT,dir);
+                int range = std::min(thisbin, length-1);
+
+                for (int l = 0; l <= range; l++){
+                    if (thisTjMfpt[l] ==-1){
+                        thisTjMfpt[l] =index - firsttime;
+                    }
+                }
+
+                if (value*dir >=lambdaB*dir && value*dir<=lambda0*dir){
+                    int thisbin = binfinder(value, lambdaB, delT,dir);
+                    int lastbin = binfinder(prev, lambdaB, delT,dir);
+                    if (std::abs(thisbin-lastbin)<=1){
+                        density[thisbin] +=1;
+                    }else if (thisbin-lastbin>1){ //smear it inbetween
+                        for (int q = lastbin+1; q<=thisbin; q++){
+                            if (q>=0){
+                                density[q] += 1.0 / (double)std::abs(thisbin - lastbin);
+                            }
+                        }
+                    }else{ //negative case
+                        for (int q = thisbin; q<=lastbin-1; q++){
+                            if (q>=0){
+                                density[q] += 1.0 / (double)std::abs(thisbin - lastbin);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (reset && (value*dir>=lambda0*dir)){
+                reset = false;
+                for (int l = 0;l <length; l++){
+                    if (thisTjMfpt[l] ==-1){
+                        thisTjMfpt[l] = index - firsttime;
+                    }
+                    MFPT[l] += thisTjMfpt[l];
+                }
+                totaltrajs++;
+            }
+            prev = value;
+            index++;
+        }
+
+    }
+    for (size_t i = 0;i<density.size(); i++){
+        density[i] /= (double)totaltrajs;
+        MFPT[i] /= (double)totaltrajs;
+    }
+}
+
+
+void milestone(std::vector<double>& density, std::vector<double>& MFPT, std::vector<int>& mfptSuccCount, int& tjCount, double lBasin, double lCurrent, double lNext, std::string path,double delT, int& totalsuccesses){
+    totalsuccesses=0;
+    int dir = lCurrent>lBasin ? 1 : -1; 
+    int densitylength = binfinder(lNext,lBasin, delT,dir)+1;
+    int MFPTlength = binfinder(lNext, lBasin, delT, dir) - binfinder(lCurrent, lBasin, delT, dir);
+    density.assign(densitylength, 0.0);
+    MFPT.assign(MFPTlength, 0.0);  
+    mfptSuccCount.assign(MFPTlength, 0);
+
+    std::vector<double> mfptSuccLength(MFPTlength, 0.0);
+    std::vector<double> mfptFailLength(MFPTlength, 0.0);
+    std::vector<int> mfptFailCount(MFPTlength, 0);
+
+    std::string line;
+    
+    
+    std::vector<std::string> colvars = listdirStart(path, "C");
+    std::vector<double> lambdaMax(colvars.size(), -1000000.0);
+    double time, value, prev;
+    int colvarindex=-1;// so that we always increment
+    tjCount = 0;
+    for (std::string colvar:colvars){
+        colvarindex++;
+        auto result =lastorderparameter(path + "/"+ colvar);
+        double c = result.second;
+        if (dir*lBasin<c*dir && dir*c<dir*lNext){
+            continue;
+        }
+
+        std::ifstream colvarstream(path + "/" +colvar );
+        bool first = true, reset = false;
+        int index = 0;
+
+        while (std::getline(colvarstream, line)){
+            if (line.empty() || line[0] == '#' || line[0] == '@') {
+                continue;
+            }
+            std::stringstream stream(line); //collect order parameter per line
+            stream>>time>>value;
+            if (value*dir>dir*lambdaMax[colvarindex]){
+                lambdaMax[colvarindex] = value;
+            }
+            if (first ==true){
+                prev = value; //start keeping track of prev
+                first =false;
+            }
+            if (lBasin*dir<value*dir && value*dir<lNext*dir){
+                int thisbin = binfinder(value, lBasin, delT,dir);
+                int lastbin = binfinder(prev, lBasin, delT,dir);
+                if (std::abs(thisbin-lastbin)<=1){
+                    density[thisbin] ++;
+                }else if (thisbin-lastbin>1){ //smear it inbetween
+                    for (int q = lastbin+1; q<=thisbin; q++){
+                        if (q>=0){
+                            density[q] += 1.0 / (double)std::abs(thisbin - lastbin);
+                        }
+                    }
+                }else{ //negative case
+                    for (int q = thisbin; q<=lastbin-1; q++){
+                        if (q>=0){
+                            density[q] += 1.0 / (double)std::abs(thisbin - lastbin);
+                        }
+                    }
+                }
+            }
+            prev = value;
+        }
+    }
+    colvarindex = -1;
+    for (std::string colvar:colvars){
+        colvarindex++;
+        auto result =lastorderparameter(path +"/" + colvar);
+        double c = result.second;
+        if (dir*lBasin<c*dir && dir*c<dir*lNext){
+            continue;
+        }
+        if (lambdaMax[colvarindex]* dir>lNext*dir){
+            totalsuccesses++;
+        }
+        if (lambdaMax[colvarindex]*dir<lBasin*dir){
+            std::ifstream colvarstream1(path + "/" +colvar );
+            int fileLength = 0;
+            while (std::getline(colvarstream1, line)) {
+                if (line.empty() || line[0] == '#' || line[0] == '@') {
+                    continue;
+                }
+                std::stringstream stream(line);
+                if (!(stream >> time >> value)) continue;
+                fileLength++;
+            }
+            for (int l =0; l<MFPTlength; l++){
+                mfptFailCount[l]++;
+                mfptFailLength[l] += (double) fileLength-1;
+            }
+            tjCount++;
+            continue;
+        }
+        tjCount ++;
+        //int binMax = binfinder(lambdaMax[colvarindex], lCurrent, delT,dir);
+        int binMax = binfinder(lambdaMax[colvarindex], lBasin, delT,dir)-binfinder(lCurrent, lBasin, delT,dir);
+        //int delta = std::min(binMax, MFPTlength);
+        int delta = std::max(0, std::min(binMax, MFPTlength));        
+        int fileLength = 0;
+        std::ifstream colvarstream2(path + "/" + colvar);
+        while (std::getline(colvarstream2, line)) {
+            if (line.empty() || line[0] == '#' || line[0] == '@') {
+                continue;
+            }
+            std::stringstream stream(line);
+            if (!(stream >> time >> value)) continue;
+            fileLength++;
+        }
+        for (int l = delta; l<MFPTlength; l++){
+            mfptFailLength[l]+= (double) fileLength-1;
+            mfptFailCount[l]++;
+        }
+        for (int l =0; l<delta; l++){
+            mfptSuccCount [l]++;
+        }
+        if (delta<=0) continue;
+        //int lengthThisTJMFPT = binfinder(lambdaMax[colvarindex],lCurrent, delT ,dir);
+        //std::vector<double> thisTjMfpt(lengthThisTJMFPT, -1.0);
+        std::vector<double> thisTjMfpt(MFPTlength, -1.0);
+        int index = 0;
+        std::ifstream colvarstream3(path + "/" +colvar );
+        bool first = true, reset = false;
+
+        while (std::getline(colvarstream3, line)){
+            if (line.empty() || line[0] == '#' || line[0] == '@') {
+                continue;
+            }
+            std::stringstream stream(line); 
+            if (!(stream >> time >> value)) {
+                std::cout<<"issue"<<std::endl;
+                continue;
+            }
+            if (value*dir>dir*lCurrent){
+                int bin = binfinder(value, lBasin, delT, dir) - binfinder(lCurrent, lBasin, delT, dir);
+                bin = std::max(0, std::min(bin, MFPTlength));
+                for (int l=0;l< bin;l++){
+                    if (thisTjMfpt[l]==-1){
+                        thisTjMfpt[l] = index;
+                    }
+                }
+                if (dir*value>=std::min(dir*lambdaMax[colvarindex], lNext*dir)){
+                    for (int l = 0; l<bin; l++){
+                        mfptSuccLength[l] += thisTjMfpt[l];
+                    }
+                    break;
+                }
+            }
+            index++;
+
+        }
+    }
+    for (size_t i=0; i<densitylength; i++){
+        density[i] /= (double) tjCount;
+    }
+
+    for (int i = 0;i<MFPTlength; i++){
+        if (mfptSuccCount[i] == 0) {
+            MFPT[i] = (i > 0) ? MFPT[i-1] : 0.0;
+            continue;
+        }
+        MFPT[i] = (mfptSuccLength[i]+mfptFailLength[i])/(double) mfptSuccCount[i];
+    }
+}
+
+void FreeEnergyCalculation(std::vector<std::string> filepaths, std::vector<double> Milestones, double delT,std::string OutputName){
+    int dir = Milestones[1]>Milestones[0] ? 1 : -1; 
+    int totalsuccesses=0;
+    int tjCount=0;
+    std::vector<int> mfptSuccCount;
+    std::vector<double> cummprobs(filepaths.size(),1.0);
+    std::vector<std::vector<double>> alldensities;
+    std::vector<double> density;
+    std::vector<double> MFPT;
+    int allMFPTlength = binfinder(Milestones.back(), Milestones[0],delT,dir)+1;
+    std::vector<double> AllMFPT(allMFPTlength,0.0);
+    basindensity(density, MFPT, Milestones[1], Milestones[0], delT,filepaths[0]);
+    alldensities.push_back(density);
+    for (size_t i = 0; i<MFPT.size(); i++){
+        AllMFPT[i] += MFPT[i];
+    }
+    for (size_t i = 1; i< Milestones.size()-1; i++){
+        std::cout<<"Trying "<<i<<std::endl;
+        milestone(density, MFPT, mfptSuccCount, tjCount,  Milestones[0],  Milestones[i],  Milestones[i+1], filepaths[i], delT,totalsuccesses);
+        std::cout<<"Completed "<<i<<std::endl;
+        cummprobs[i] = cummprobs[i-1]*totalsuccesses/(double)tjCount;
+        //cummprobs[i] *= cummprobs[i-1]*(double)mfptSuccCount.back()/(double)tjCount;
+        int offset = binfinder(Milestones[i], Milestones[0],delT,dir)+1;
+        for (size_t j = 0; j<MFPT.size();j++){
+            if (mfptSuccCount[j]==0){
+                AllMFPT[offset+j] = (offset+j > 0) ? AllMFPT[offset+j-1] : 0.0; 
+                continue;
+            }
+            AllMFPT[offset + j] = MFPT[j] +tjCount*AllMFPT[offset-1]/(double)mfptSuccCount[j];
+        }
+        alldensities.push_back(density);
+    }
+    std::cout<<"calculating pi list"<<std::endl;
+    std::vector<double> piListAll(alldensities.back().size(), 0.0); //data manipulation time
+    for (int i = alldensities.size()-1; i>=1; i--){
+        for (size_t j = 0; j<alldensities[i].size(); j++){
+            piListAll[j] += cummprobs[i-1] *alldensities[i][j];
+        }
+    }
+    //add basin
+    std::cout<<"Adding basin"<<std::endl;
+    for (size_t j = 0; j<alldensities[0].size(); j++){
+        piListAll[j] += alldensities[0][j];
+    }
+    std::cout<<"intPST1"<<std::endl;
+    std::vector<double> intPst(allMFPTlength,0.0);
+    intPst[allMFPTlength-1] = piListAll[allMFPTlength-1];
+    for (int j = allMFPTlength-2; j>=0; j--){
+        intPst[j] = intPst[j+1] + piListAll[j];
+    }
+    std::cout<<"intPST2"<<std::endl;
+    double intPstTotal = intPst[0];
+    for (size_t j = 0; j<intPst.size(); j++){
+        intPst[j] /= intPstTotal;
+        piListAll[j] /= intPstTotal;
+    }
+    std::cout<<"intPST3"<<std::endl;
+    for (size_t j = 0; j<intPst.size(); j++){
+        if (j == (intPst.size()-1)){
+            intPst[j] = 1.0;
+        }else{
+            intPst[j] = 1.0 - intPst[j + 1];
+        }
+    }
+    std::cout<<"bfunc0"<<std::endl;
+    std::vector<double> bFunc(allMFPTlength,0.0);
+    std::vector<double> intOneOverbFunc(allMFPTlength,0.0);
+    bFunc[0] = piListAll[0] - AllMFPT[0] / AllMFPT.back();
+    bFunc[0] /= piListAll[0];
+    std::cout<<"bfunc1"<<std::endl;
+    for (size_t j = 1; j < AllMFPT.size(); j++) {
+        bFunc[j] = intPst[j] - AllMFPT[j] / AllMFPT.back();
+        bFunc[j] /= piListAll[j];
+    }
+    std::cout<<"bfunc2"<<std::endl;
+    intOneOverbFunc[0] = 1.0 /bFunc[0];
+    for (size_t j = 1; j<allMFPTlength; j++){
+        intOneOverbFunc[j] = intOneOverbFunc[j-1] + 1.0/bFunc[j];
+    }
+    std::cout<<"bfunc3"<<std::endl;
+    std::vector<double> FreeEnergy(allMFPTlength, 0.0);
+    for (size_t j = 0; j<allMFPTlength; j++){
+        FreeEnergy[j] = std::log(bFunc[j])- intOneOverbFunc[j];
+    }
+    
+    std::cout<<"print"<<std::endl;
+
+    // printing part
+
+    std::ofstream out(OutputName);
+
+    out << std::scientific << std::setprecision(15);
+
+    out << "# cummprobs";
+    for (size_t i = 0; i < cummprobs.size(); i++) {
+        out << "\tcummprob_" << i << "=" << cummprobs[i];
+    }
+    out << "\n";
+
+    out << "j"<< "\tlambda"<< "\tpiListAll"<< "\tAllMFPT"<< "\tAllMFPT_norm"<< "\tintPst"<< "\tbFunc"<< "\tintOneOverbFunc"<< "\tFreeEnergy";
+
+    for (size_t i = 0; i < alldensities.size(); i++) {
+        out << "\tdensity_" << i;
+    }
+    out << "\n";
+
+    for (size_t j = 0; j < AllMFPT.size(); j++) {
+        double lambda = Milestones.front() + dir * delT * (double)j;
+        out << j<< "\t" << lambda<< "\t" << piListAll[j]<< "\t" << AllMFPT[j]<< "\t" << AllMFPT[j] / AllMFPT.back()<< "\t" << intPst[j]<< "\t" << bFunc[j]<< "\t" << intOneOverbFunc[j]<< "\t" << FreeEnergy[j];
+        for (size_t i = 0; i < alldensities.size(); i++) {
+            if (j < alldensities[i].size()) {
+                out << "\t" << alldensities[i][j];
+            } else {
+                out << "\t" << "";
+            }
+        }
+
+        out << "\n";
+    }
+
+    out.close();
+}
+
+
 int main(int argc, char** argv) { //okay here we get the inputs and decide the run type and set up the level of parallelism
-    if (argc== 16){
+    if( argc==1){
+        Login();
+    }else if (std::string(argv[1]) == "Mathematics") {
+        int type = std::stoi(argv[2]);
+        if (type ==0){ //free energy calculation
+            int numsteps = std::stoi(argv[3]);
+            if (argc!= 2*numsteps+ 7 ){ //plus program name, mathematics,numsteps,   delT, type, outputname 
+                std::cout<<"Incorrect setup for mathematics"<<std::endl;
+                return 1;
+            }
+            double deltaT = std::stod(argv[4]);
+            std::string Outputname = argv[5];
+            int idx = 6;
+            std::vector<double> Milestones;
+            for (int i=0; i<=numsteps; ++i){
+                Milestones.push_back(std::stod(argv[idx++]));
+            }
+            std::vector<std::string> filepaths;
+            for (int i = 0; i<numsteps; ++i){
+                filepaths.push_back(argv[idx++]);
+            }
+            FreeEnergyCalculation(filepaths, Milestones, deltaT, Outputname);
+        }
+    }else if (argc== 16){
         int MDenginetype = std::stoi(argv[1]);
         int simtype = std::stoi(argv[2]);
         std::string Outputfolder = argv[3];
@@ -2816,8 +3283,6 @@ int main(int argc, char** argv) { //okay here we get the inputs and decide the r
         }else if (simtype ==2){
             Exploration(ctx.get(), Outputfolder, runid, structurefiles, trail, nsteps, CUSTOMOP, rootdirectory, MDenginetype, strides,deltaT,constanttopology);
         }
-    }else if( argc==1){
-        Login();
     }
     else if(argc ==6){
         int simtype = std::stoi(argv[1]);
