@@ -31,7 +31,6 @@
 #include <iomanip>
 #include <limits>
 
-
 volatile sig_atomic_t stop_requested = 0;
 
 void signal_handler(int signum) {
@@ -1890,8 +1889,15 @@ void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromac
     }
 }
 
-void FreeEnergyBash(int numsteps, double deltaT, std::string Outputname, std::vector<double> Milestones,std::vector<std::string> filepaths,std::string partition, std::string runtime, std::string email){
-    std::ofstream Bash("FreeEnergy.sh");
+void mathematicsbash(int calculationtype ,int numsteps, double deltaT, std::string Outputname, std::vector<double> Milestones,std::vector<std::string> filepaths,std::string partition, std::string runtime, std::string email){
+    std::string nombre;
+    if (calculationtype ==0){
+        nombre = "FreeEnergy.sh";
+    }else if(calculationtype ==1){
+        nombre = "LandscapeVariance.sh";
+    }
+
+    std::ofstream Bash(nombre);
     Bash<<"#!/bin/bash"<<std::endl;
     Bash<<"#SBATCH -p "<<partition<<std::endl;
     Bash<<"#SBATCH -n 1"<<std::endl;
@@ -1901,14 +1907,24 @@ void FreeEnergyBash(int numsteps, double deltaT, std::string Outputname, std::ve
         Bash<<"#SBATCH --mail-user="<<email<<std::endl;
         Bash<<"#SBATCH --mail-type=end"<<std::endl;
     }
-    Bash<<"./AdSamp Mathematics 0 "<<numsteps<<" "<<deltaT<<" "<<Outputname;
-    for (const auto& milestone: Milestones ){
-        Bash<<" "<<milestone;
+    Bash<<"./AdSamp Mathematics ";
+    Bash<<calculationtype<< " "<<numsteps<<" "<<Outputname;
+    if (calculationtype ==0){
+        Bash<<" "<<deltaT;
+        for (const auto& milestone: Milestones ){
+            Bash<<" "<<milestone;
+        }
+        for (const auto& path: filepaths){
+            Bash<<" "<<path;
+        }
+        Bash<<std::endl;
     }
-    for (const auto& path: filepaths){
-        Bash<<" "<<path;
+    if (calculationtype ==1){
+        for (const auto& path: filepaths){
+            Bash<<" "<<path;
+        }
+        Bash<<std::endl;
     }
-    Bash<<std::endl;
 }
 
 void Login(){ //this will take in user inputs, ensure files are in order, then create a bash script for controller launch
@@ -1918,10 +1934,10 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
         std::string runtime = ask<std::string>("Max Run Time (D-HH:MM:SS)",[](const std::string& s){std::regex r(R"((\d+-)?\d{1,2}:\d{2}:\d{2})");return std::regex_match(s, r);});
         std::string email= ask<std::string>("email (write 0 for no email)");
         //here do the mathematics process
-        int calculationtype= ask<int>("Calculation Type: Free Energy (0)",[](int x){return x==0;}); //for now just have free energy hahaha
+        int calculationtype= ask<int>("Calculation Type: Free Energy (0), Landscape Variance (1)",[](int x){return x==0|| x==1;}); //for now just have free energy and lanscape variance hahaha
+        int numsteps = ask<int>("Number of Simulations",[](int x){return x>0;});
+        std::string Outputname = ask<std::string>("Output File Name",[](const std::string& filename) {return !std::filesystem::exists(filename);});
         if (calculationtype ==0){
-            int numsteps = ask<int>("Number of Simulations",[](int x){return x>0;});
-            std::string Outputname = ask<std::string>("Output File Name",[](const std::string& filename) {return !std::filesystem::exists(filename);});
             std::vector<std::string> filepaths;
             for (int i = 0; i<numsteps; ++i){
                 std::string prompt=(i==0)?"Basin Postprocessed Directory":"FFS"+std::to_string(i)+" PostProcessed Directory";
@@ -1936,8 +1952,20 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
             }
 
             double deltaT = ask<double>("delT (must evenly divide all milestone intervals)",[&Milestones](double x){if (x <= 0) return false;for (size_t i = 1; i < Milestones.size(); ++i){double bins=(Milestones[i]-Milestones[i-1])/x;if (std::abs(bins-std::round(bins)) > 1e-9) return false;}return true;});
-            FreeEnergyBash(numsteps, deltaT, Outputname, Milestones, filepaths,partition, runtime, email);
+            mathematicsbash(0,numsteps, deltaT, Outputname, Milestones, filepaths,partition, runtime, email);
             return;
+        }
+        if (calculationtype ==1){
+            std::vector<std::string> filepaths;
+            for (int i = 0; i<numsteps; ++i){
+                std::string prompt="FFS"+std::to_string(i+1)+" PostProcessed Directory";
+                std::string filepath = ask<std::string>(prompt, [](const std::string& path){ return std::filesystem::is_directory(path) && std::filesystem::is_regular_file(std::filesystem::path(path) / "successes.txt"); });
+                filepaths.push_back(filepath);
+            }
+            std::vector<double> Milestones;
+            mathematicsbash(1, numsteps,0.0, Outputname, Milestones ,filepaths, partition, runtime, email);//just gonna fill out the irrelevant sections with meaningless stuff
+            return;
+            //for landscape variance only need paths
         }
     }
     //part one packages
@@ -3221,19 +3249,160 @@ void FreeEnergyCalculation(std::vector<std::string> filepaths, std::vector<doubl
 }
 
 
+struct Configstally{
+    std::vector<int> UniqueConfigs;
+    std::vector<int> Successes;
+    std::vector<int> Failures;
+    std::unordered_map< int, size_t> configIndexes;
+    
+
+    size_t getIndex(int id){
+        auto it = configIndexes.find(id);
+        if (it!=configIndexes.end()){
+            return it->second; //the second entry is the index
+        }
+        size_t idx = UniqueConfigs.size();
+        UniqueConfigs.push_back(id);
+        Successes.push_back(0);
+        Failures.push_back(0);
+        configIndexes.emplace(id, idx);
+        return idx;
+    }
+};
+void tallyfile(std::string path, Configstally& tally, bool isSuccessFile){
+    std::ifstream in(path);
+    std::string line;
+    while (std::getline(in,line)){
+        std::vector<std::string> tokens = tokenize(line);
+        std::string propername = tokens[0];
+        std::string ic = "initialconfiguration_";
+        size_t start =propername.find(ic); //need to extract ic from propername
+        start += ic.length();
+        size_t end = propername.find("_", start);
+        int chosenstructure = std::stoi(propername.substr(start,end-start));
+        size_t idx = tally.getIndex(chosenstructure);
+        if (isSuccessFile){
+            tally.Successes[idx]+=1;
+        }else{
+            tally.Failures[idx]+=1;
+        }
+
+    }
+}
+
+struct MilestoneStats{
+    double P;
+    double Var;
+    bool dead; //this ones if we have successes = 0
+};
+
+MilestoneStats combineConfigVariance(const Configstally& tally){
+    //null case one
+    size_t siz = tally.UniqueConfigs.size();
+    if (siz ==0){
+        return {0.0, 0.0, true};
+    }
+    std::vector<double> p(siz), total(siz);
+    double N = 0.0, weightedSum = 0.0;
+    for (size_t i = 0; i<siz; i++){
+        total[i] = tally.Successes[i] + tally.Failures[i];
+        p[i] = tally.Successes[i]/total[i];
+        N+= total[i];
+        weightedSum += total[i] * p[i];
+    }
+    double P = weightedSum/N;
+
+    double within=0.0;
+    for (size_t i = 0;i<siz; i++){
+        within += (p[i]*(1-p[i])); //binomial dist
+    }
+    within/=N;
+    
+    double between =0.0;
+    for (size_t i = 0;i<siz; i++){
+        between += total[i] *(p[i] -P)*(p[i]-P);
+    }
+    between/=N;
+    double Var = between + within;
+    bool dead=(P ==0);
+    return {P,Var,dead};
+}
+
+
+void LandscapeVariances(int numsteps, std::string Outputname, std::vector<std::string> filepaths){
+    for (int i = 0; i<numsteps; i++){
+        std::string path = filepaths[i];
+        std::string outputname = Outputname + "_" + std::to_string(i+1) + ".txt"; //unique name for each step
+        std::ofstream out(outputname);
+        out << std::scientific << std::setprecision(15);
+
+        bool hasSuccesses= std::filesystem::exists(path+ "/successes.txt");
+        bool hasFailures=std::filesystem::exists(path+ "/failures.txt");
+        if (!hasSuccesses && !hasFailures){
+            out<<"Error no success or failure files, check that run is postprocessed properly"<<std::endl;
+            continue;
+        }
+        Configstally tally;
+        if (hasSuccesses){
+            tallyfile(path + "/successes.txt",tally,true);
+        }
+        if (hasFailures){
+            tallyfile(path + "/failures.txt",tally,false);
+        }
+        double P=0.0, Var=0.0;
+        bool dead=false;
+        if (hasSuccesses && !hasFailures){
+            P=1.0;Var=0.0;dead=false;
+        } else if (!hasSuccesses && hasFailures){
+            P = 0.0; Var = 0.0; dead = true;
+            out << "Error: " << path << " had zero successes" << std::endl;
+            continue;
+        }else {
+            MilestoneStats stats=combineConfigVariance(tally);
+            P=stats.P;
+            Var=stats.Var;
+            dead=stats.dead;
+        }
+        size_t siz=tally.UniqueConfigs.size();
+        double N=0.0;
+        for (size_t j=0; j<siz; j++){
+            N+=tally.Successes[j]+tally.Failures[j];
+        }
+        out<<"Source directory: " << path << std::endl;
+        out<<"Number of unique initial configurations: "<<siz<<std::endl;
+        out<<"Total trajectories: " << N<<std::endl;
+        out<<"Transition probability: "<<P<<std::endl;
+        out<<"Pooled variance (between+within): " <<Var<<std::endl;
+        out<<"config_id\tsuccesses\tfailures\ttotal\tp_i\tdeviation(p_i-P)\tbetween_contrib\twithin_contrib"<<std::endl;
+        for (size_t j=0; j<siz; j++){
+            int succ=tally.Successes[j];
+            int fail=tally.Failures[j];
+            int total=succ+fail;
+            double p_i=(total>0)?(double)succ/total:0.0;
+            double deviation=p_i-P;
+            double between_c=(total> 0 && N >0) ? (total*deviation*deviation)/N:0.0;
+            double within_c=(total> 0) ? p_i*(1.0- p_i):0.0;
+            out<<tally.UniqueConfigs[j]<<"\t"<< succ << "\t" << fail << "\t" << total << "\t"<< p_i << "\t" << deviation << "\t" << between_c << "\t" << within_c << std::endl;
+        }
+        out.close();
+    }
+}
+
+
+
 int main(int argc, char** argv) { //okay here we get the inputs and decide the run type and set up the level of parallelism
     if( argc==1){
         Login();
     }else if (std::string(argv[1]) == "Mathematics") {
         int type = std::stoi(argv[2]);
+        int numsteps = std::stoi(argv[3]);
+        std::string Outputname = argv[4];
         if (type ==0){ //free energy calculation
-            int numsteps = std::stoi(argv[3]);
             if (argc!= 2*numsteps+ 7 ){ //plus program name, mathematics,numsteps,   delT, type, outputname 
                 std::cout<<"Incorrect setup for mathematics"<<std::endl;
                 return 1;
             }
-            double deltaT = std::stod(argv[4]);
-            std::string Outputname = argv[5];
+            double deltaT = std::stod(argv[5]);
             int idx = 6;
             std::vector<double> Milestones;
             for (int i=0; i<=numsteps; ++i){
@@ -3244,6 +3413,17 @@ int main(int argc, char** argv) { //okay here we get the inputs and decide the r
                 filepaths.push_back(argv[idx++]);
             }
             FreeEnergyCalculation(filepaths, Milestones, deltaT, Outputname);
+        }else if (type ==1){
+            if (argc!=numsteps +5 ){ //plus program name, mathematics,type,  numsteps, outputname
+                std::cout<<"Incorrect setup for mathematics"<<std::endl;
+                return 1;
+            }
+            int idx = 5;
+            std::vector<std::string> filepaths;
+            for (int i = 0; i<numsteps; ++i){
+                filepaths.push_back(argv[idx++]);
+            }
+            LandscapeVariances(numsteps, Outputname,filepaths);
         }
     }else if (argc== 16){
         int MDenginetype = std::stoi(argv[1]);
