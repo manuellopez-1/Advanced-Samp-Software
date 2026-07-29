@@ -1074,6 +1074,10 @@ void pathedit(std::string newfolder,int& runtype, int direction, double leftboun
                 //switch case
                 //imo only have to switch case and edit basininfo but why not also edit the path to the right number of crossings just in case
             }
+            double runtime   = result.first/deltaT;
+            if (runtime>=nsteps){
+                weshouldstop = 0;
+            }
         std::ofstream basinOut(basindirectoryfile, std::ios::trunc);
         basinOut<<runtype<<std::endl;
         }else if (runtype ==4){ //this is for the exploration
