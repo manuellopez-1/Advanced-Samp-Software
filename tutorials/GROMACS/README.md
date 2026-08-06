@@ -1,4 +1,4 @@
-### Ad Samp LAMMPS with PLUMED Tutorial
+### Ad Samp GROMACS Tutorial
 
 This tutorial will instruct a user for how to run a full FFS calculation on a simple system, two atoms in harmonic oscilation. For information on the overall flow of simulations, see [multistep](/docs/multistep.md).  
 
