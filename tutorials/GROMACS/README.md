@@ -46,7 +46,7 @@ With the system set up and the script compiled, run `./AdSamp` to begin login in
 You will notice safety features throughout, for example if you misformat the run times you will be prompted to retype this. 
 
 ### Launching simulation
-Following these inputs the following two files will have been created: `AdSamp.sh` and `AdSampController.sh`. To launch the simulations simply `sbatch AdSampController.sh` note that the controller will launch `AdSamp.sh` do not launch this one. There are some safety features built in here. For example if you launch `AdSampController.sh` twice the newer one will cancel the former and continue monitoring the simulations. These scripts will run until the simulation is complete, at which point an email will be sent if the account was provided. 
+Following these inputs the following two files will have been created: `AdSamp.sh` and `AdSampControl.sh`. To launch the simulations simply `sbatch AdSampControl.sh` note that the controller will launch `AdSamp.sh` do not launch this one. There are some safety features built in here. For example if you launch `AdSampControl.sh` twice the newer one will cancel the former and continue monitoring the simulations. These scripts will run until the simulation is complete, at which point an email will be sent if the account was provided. 
 
 
 ### Outputs
