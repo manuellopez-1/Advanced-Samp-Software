@@ -30,6 +30,7 @@
 #include <cmath>
 #include <iomanip>
 #include <limits>
+#include <unistd.h> //atomic writing thing, no path race condition
 
 volatile sig_atomic_t stop_requested = 0;
 
@@ -1094,10 +1095,14 @@ void pathedit(std::string newfolder,int& runtype, int direction, double leftboun
             }
         }
     }
-    std::ofstream pathOut(Path, std::ios::trunc);
-    for (std::string line:pathLines){
-        pathOut<<line<<std::endl;
+    std::string temporarypath = Path + ".tmp" ;
+    {
+        std::ofstream PathOut(temporarypath,std::iois::trunc);
+        for (std::string line:pathLines){
+            PathOut<<line<<std::endl;
+        }
     }
+    std::filesystem::rename(temporarypath, Path); //this is to avoid race condition on path
 }
 
 void DeleteExtraFiles(std::string newfolder, int runtype){
