@@ -1097,7 +1097,7 @@ void pathedit(std::string newfolder,int& runtype, int direction, double leftboun
     }
     std::string temporarypath = Path + ".tmp" ;
     {
-        std::ofstream PathOut(temporarypath,std::iois::trunc);
+        std::ofstream PathOut(temporarypath,std::ios::trunc);
         for (std::string line:pathLines){
             PathOut<<line<<std::endl;
         }
