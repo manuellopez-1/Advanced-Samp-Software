@@ -79,12 +79,12 @@ Once these inputs have been given, a file called `PostProcessing.sh` will be cre
 
 The next step is a basin simulation using the outputs of the exploration as an input run `./AdSamp` to begin login interaction. Input the following:
 
-1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
-2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
-4. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
-5. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-6. Postprocessing (Yes: 1, No: 2): | 2
+1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 1
+2. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
+3. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
+4. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
+5. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+6. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
 7. Controller Partition (maximize runtime): | pi_balou
 8. Controller Max Run Time (D-HH:MM:SS): | 24:00:00
 9. email (write 0 for no email): | manuel.lopez@yale.edu
@@ -92,16 +92,17 @@ The next step is a basin simulation using the outputs of the exploration as an i
 11. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
 12. Runner Cores: | 4
 13. MD Step Size (ps): | .001
-14. Using PLUMED (1: yes, 0: no): | 1
-15. Output folder: | Basin
-16. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 0
-17. OP Stride: | 100
-18. Structure File Delimeter (Including .): | .cpt
-19. Structure File Directory: | ProcessedExploration
-20. Desired Number of Steps: | 10000000
-21. Batch Size (for 1 per file return 0): | 0
-22. lambda_A: | 7
-23. Goal Lambda: | 4
+14. Output folder: | Basin
+15. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 0
+16. OP Stride: | 100
+17. Structure File Delimeter (Including .): | .cpt
+18. Structure File Directory: | ProcessedExploration
+19. Constant Topology? (one index and topology file in working directory applies to all structures), 0: no, 1: yes: 1
+20. Root directory (where .gro files are): | Inputs
+21. Desired Number of Steps: | 10000000
+22. Batch Size (for 1 per file return 0): | 0
+23. lambda_A: | 7
+24. Goal Lambda: | 4
 
 Now launch `sbatch AdSampControl.sh` to begin the basin simulation.
 
