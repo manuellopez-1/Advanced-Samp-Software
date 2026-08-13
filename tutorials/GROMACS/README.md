@@ -21,12 +21,12 @@ Next, copy the following files into the AdSamp working directory [topol.top](/tu
 ### Input interaction
 
 With the system set up and the script compiled, run `./AdSamp` to begin login interaction. Input the following:
-1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
-2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
-4. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
-5. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-6. Postprocessing (Yes: 1, No: 2): | 2
+1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 1
+2. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
+3. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
+4. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
+5. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+6. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
 7. Controller Partition (maximize runtime): | pi_balou
 8. Controller Max Run Time (D-HH:MM:SS): | 24:00:00
 9. email (write 0 for no email): | manuel.lopez@yale.edu
@@ -37,7 +37,7 @@ With the system set up and the script compiled, run `./AdSamp` to begin login in
 14. Output folder: | Exploration
 15. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
 16. OP Stride: | 100
-17. Structure File Delimeter (Including .): | .in
+17. Structure File Delimeter (Including .): | .gro
 18. Structure File Directory: | Inputs
 19. Constant Topology? (one index and topology file in working directory applies to all structures), 0: no, 1: yes: | 1
 20. Desired Number of Steps: | 100000
@@ -57,12 +57,12 @@ Once the simulation has run all outputs described in [outputs](/docs/outputfiles
 ### Input interaction (Postprocessing)
 To begin postprocessing, run `./AdSamp` to begin login interaction. Input the following:
 
-1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
-2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
-4. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
-5. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-6. Postprocessing (Yes: 1, No: 2): | 1
+1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 2
+2. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
+3. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
+4. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
+5. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
+6. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
 7. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 2
 8. Partition: | pi_balou
 9. Max Run Time (D-HH:MM:SS): | 24:00:00
