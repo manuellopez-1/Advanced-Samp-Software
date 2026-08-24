@@ -3464,7 +3464,7 @@ int main(int argc, char** argv) { //okay here we get the inputs and decide the r
             ctx = std::make_unique<SerialContext>();
         }
 
-        //std::this_thread::sleep_for(std::chrono::seconds(60)); //this is for requeue to avoid double running a process, I think this was causing requeue held, remove
+        std::this_thread::sleep_for(std::chrono::seconds(60)); //this is for requeue to avoid double running a process
         if (simtype ==0){
             Basin(ctx.get(), Outputfolder, runid, leftbound, rightbound, structurefiles, trail, nsteps, CUSTOMOP, rootdirectory, MDenginetype, strides,deltaT, constanttopology );
         }else if (simtype ==1){
