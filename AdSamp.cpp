@@ -454,7 +454,7 @@ int crossings_checker(std::string colvarfile, double leftbound, double rightboun
     std::string line;
     double time, op;
     int crossings=0;
-    int returned = 1;
+    int returned = 0;
     while (std::getline(in, line)){
         if (line.empty() || line[0] == '#') continue; //skip header
         std::istringstream iss(line); //extracting numbers from files in c++ is a little weird
@@ -1210,13 +1210,13 @@ void Basin(Context* ctx,std::string Outputfolder, std::string runid, double left
     //step 1 make folders, get direction of basin run
     std::string newfolder = Outputfolder +"/" + runid ;
     std::string basindirectoryfile = newfolder + "/basininfo.txt";
-    int runtype=1;
+    int runtype=2;
     if (!std::filesystem::exists(newfolder)){
         if (rank ==0){
             std::filesystem::create_directories(newfolder);
         }
         ctx->barrier();
-        runtype = 1;
+        runtype = 2;
     }else{
         if (rank ==0){
             std::ifstream inputFile(basindirectoryfile);
