@@ -1114,7 +1114,8 @@ void DeleteExtraFiles(std::string newfolder, int runtype){
                 std::filesystem::remove(p);
             }
         }
-        std::vector<std::string> endings = {".edr", ".log", ".tpr", ".trr", ".xtc", "_prev.cpt"};
+        //std::vector<std::string> endings = {".edr", ".log", ".tpr", ".trr", ".xtc", "_prev.cpt"};
+        std::vector<std::string> endings = {".log", ".tpr", "_prev.cpt"};
         for (const auto&ending: endings){
             std::vector<std::string> TRRs = listdirEnding(newfolder, ending);
             for (const auto& file: TRRs){
@@ -2495,6 +2496,7 @@ void controller(int simtype, std::string outputfolder, double leftbound, double 
     std::cout<<ncrossings<<" "<<maxcrossings<<std::endl;
     if (ncrossings>=maxcrossings){
         std::string cmd = "scancel " + std::to_string(subjobs);
+        std::cout<<cmd<<std::endl;
         std::system(cmd.c_str()); 
     }
     
