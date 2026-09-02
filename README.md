@@ -157,11 +157,11 @@ AdSamp/
 -orderparameterpicker.cpp / .h
 -tutorials/
 -templates/
+  -GROMACS
+  -LAMMPSnoPLUMED
+  -LAMMPSwithPLUMED
 -BuildConfig.hpp.in
 -CMakeLists.txt
-  -
-  - 
-  -
 -docs/
   - algorithms.md
   - Inputfiles.md
