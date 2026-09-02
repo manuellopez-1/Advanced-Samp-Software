@@ -27,11 +27,13 @@ set_property(CACHE MD_ENGINE PROPERTY STRINGS LAMMPS GROMACS)
 if(NOT MD_ENGINE STREQUAL "LAMMPS" AND NOT MD_ENGINE STREQUAL "GROMACS")
     message(FATAL_ERROR
         "You must choose an MD engine:\n"
-        "  cmake .. -DMD_ENGINE=LAMMPS -DLAMMPS_ROOT=/path/to/lammps -DPLUMED_DIR=/path/to/plumed\n"
-        "  cmake .. -DMD_ENGINE=GROMACS -DGROMACS_DIR=/path -DPLUMED_DIR=/path [-DFFTW_MODULE=fftw/x.y.z]")
+        "  cmake .. -DMD_ENGINE=LAMMPS -DLAMMPS_ROOT=/path/to/lammps\n"
+        "  cmake .. -DMD_ENGINE=GROMACS -DGROMACS_DIR=/path -DPLUMED_DIR=/path "
+        "[-DFFTW_MODULE=fftw/x.y.z]")
 endif()
 
 if(MD_ENGINE STREQUAL "LAMMPS")
+	set(MD_ENGINE_ID 0)
 	find_path(LAMMPS_INCLUDE_DIR NAMES lammps/lammps.h HINTS $ENV{LAMMPS_DIR} ${LAMMPS_ROOT} PATH_SUFFIXES include)
 	find_library(LAMMPS_LIBRARY NAMES lammps HINTS $ENV{LAMMPS_DIR} ${LAMMPS_ROOT} PATH_SUFFIXES lib lib64)
 	set(FFTW_MODULE "" CACHE STRING "FFTW module name, e.g. fftw/3.3.10 (only needed if not auto-detected from loaded modules)")
@@ -51,9 +53,16 @@ if(MD_ENGINE STREQUAL "LAMMPS")
 		message(FATAL_ERROR "LAMMPS not found, point to it with one of:\n cmake .. -DMD_ENGINE=LAMMPS -DLAMMPS_ROOT=/path/to/lammps\n export LAMMPS_DIR=/path/to/lammps (before running cmake)")
 	endif()
 
-	if(NOT PLUMED_LIBRARY OR NOT PLUMED_KERNEL_LIBRARY)
-		message(FATAL_ERROR "PLUMED libraries not found, point to them with one of:\n cmake .. -DMD_ENGINE=LAMMPS -DLAMMPS_ROOT=/path/to/lammps -DPLUMED_DIR=/path/to/plumed\n export PLUMED_DIR=/path/to/plumed (before running cmake)")
+	if(PLUMED_LIBRARY AND PLUMED_KERNEL_LIBRARY)
+    		set(LAMMPS_HAS_PLUMED TRUE)
+    		message(STATUS "Optional PLUMED support enabled for LAMMPS")
+    		message(STATUS "PLUMED library: ${PLUMED_LIBRARY}")
+    		message(STATUS "PLUMED kernel:  ${PLUMED_KERNEL_LIBRARY}")
+	else()
+    		set(LAMMPS_HAS_PLUMED FALSE)
+    		message(STATUS "PLUMED libraries not found; building LAMMPS support without PLUMED")
 	endif()
+
 
 	message(STATUS "LAMMPS include: ${LAMMPS_INCLUDE_DIR}")
 	message(STATUS "LAMMPS library: ${LAMMPS_LIBRARY}")
@@ -62,6 +71,7 @@ if(MD_ENGINE STREQUAL "LAMMPS")
 endif()
 
 if(MD_ENGINE STREQUAL "GROMACS")
+    set(MD_ENGINE_ID 1)
     set(GROMACS_DIR "" CACHE PATH "GROMACS install prefix (contains bin/, lib/)")
     set(PLUMED_DIR "" CACHE PATH "PLUMED install prefix (contains bin/, lib/)")
     set(FFTW_MODULE "" CACHE STRING "FFTW module name, e.g. fftw/3.3.10 (only needed if not auto-detected from loaded modules)")
@@ -87,14 +97,6 @@ if(MD_ENGINE STREQUAL "GROMACS")
     message(STATUS "FFTW module: ${FFTW_MODULE}")
 endif()
 
-if(MD_ENGINE STREQUAL "LAMMPS")
-    set(MD_ENGINE_ID 0)
-else()
-    set(MD_ENGINE_ID 1)
-endif()
-
-configure_file(${CMAKE_SOURCE_DIR}/BuildConfig.hpp.in ${CMAKE_BINARY_DIR}/BuildConfig.hpp @ONLY)
-
 configure_file(${CMAKE_SOURCE_DIR}/BuildConfig.hpp.in ${CMAKE_BINARY_DIR}/BuildConfig.hpp @ONLY)
 
 add_executable(AdSamp AdSamp.cpp orderparameterpicker.cpp)
@@ -105,10 +107,20 @@ target_link_libraries(AdSamp PRIVATE MPI::MPI_CXX)
 if(MD_ENGINE STREQUAL "LAMMPS")
 	target_compile_definitions(AdSamp PRIVATE USE_LAMMPS)
 	target_include_directories(AdSamp PRIVATE ${LAMMPS_INCLUDE_DIR})
-	target_link_libraries(AdSamp PRIVATE ${LAMMPS_LIBRARY} ${PLUMED_LIBRARY} ${PLUMED_KERNEL_LIBRARY})
+	target_link_libraries(AdSamp PRIVATE ${LAMMPS_LIBRARY})
+
+	if(LAMMPS_HAS_PLUMED)
+    		target_compile_definitions(AdSamp PRIVATE HAVE_PLUMED)
+    		target_link_libraries(AdSamp PRIVATE ${PLUMED_LIBRARY} ${PLUMED_KERNEL_LIBRARY})
+	endif()
 
 	get_filename_component(LAMMPS_LIB_DIR ${LAMMPS_LIBRARY} DIRECTORY)
-	get_filename_component(PLUMED_LIB_DIR ${PLUMED_LIBRARY} DIRECTORY)
-
-	set_target_properties(AdSamp PROPERTIES BUILD_RPATH "${LAMMPS_LIB_DIR};${PLUMED_LIB_DIR}" INSTALL_RPATH "${LAMMPS_LIB_DIR};${PLUMED_LIB_DIR}")
+	set(ADSAMP_RPATH "${LAMMPS_LIB_DIR}")
+	if(LAMMPS_HAS_PLUMED)
+    		get_filename_component(PLUMED_LIB_DIR "${PLUMED_LIBRARY}" DIRECTORY)
+    		list(APPEND ADSAMP_RPATH "${PLUMED_LIB_DIR}")
+	endif()
+	set_target_properties(AdSamp PROPERTIES
+		BUILD_RPATH "${ADSAMP_RPATH}"
+		INSTALL_RPATH "${ADSAMP_RPATH}")
 endif()
