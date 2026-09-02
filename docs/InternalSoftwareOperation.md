@@ -3,6 +3,7 @@
 The AdSamp software has five modes that are accessible depending on the total number of inputs given by the user. This allows all of the software's internal operations to be handled within one unified script. These are:
 
 - Login mode: no inputs, just the run command on the software
+- Mathematics mode: Begins with Mathematics keyword
 - Postprocessing mode: 4 inputs
 - Binary Export mode: 6 inputs
 - Controller mode: 5 inputs
@@ -13,86 +14,82 @@ The AdSamp software has five modes that are accessible depending on the total nu
 
 ## Login Mode
 
-The login mode is triggered when the software is run with no arguments. It runs on the login node and is responsible for gathering all run parameters, validating them before any cluster resources are committed, and generating the bash scripts that will perform the actual simulation.
+The login mode is triggered when the software is run with no arguments. It runs on the login node and is responsible for gathering all run parameters, validating them before any cluster resources are committed, and generating the bash script(s) that will perform the actual work.
 
-The login flow is divided into two parts.
+Everything in login mode branches off a single first question:
 
-### Part 1 — Environment and Mode Selection
+> **Simulation (1), PostProcessing (2), or Mathematics (3)?**
 
-The user is first prompted for environment information that applies to all run types:
+### Mathematics Branch
 
-- OpenMPI package name — the module name as it appears on the cluster
-- FFTW package name — same
-- GROMACS installation location — validated by checking that a `bin/` subdirectory exists at the given path
-- PLUMED installation location — same check applied
-- Postprocessing mode — if yes, the login flow branches into either postprocessing or binary export mode and returns early (see Part 3 below)
+Selecting Mathematics collects a partition, max runtime (`D-HH:MM:SS`/`HH:MM:SS`), and email, then asks for a calculation type:
 
-### Part 2 — Run Configuration
+- **Free Energy (0)** — prompts for the number of simulation steps, a postprocessed directory per step (validated to contain a colvar file starting with `C`), a milestone value at each boundary (λ_B, λ_1, λ_2, …), and a `delT` that must evenly divide every interval between milestones.
+- **Landscape Variance (1)** — prompts for the number of steps and a postprocessed directory per step (validated to contain `successes.txt`). No milestones or `delT` needed.
 
-If the user is not postprocessing, the flow continues to gather simulation parameters:
+Either choice writes a self-contained bash script (`FreeEnergy.sh` or `LandscapeVariance.sh`) that re-invokes the program with a `Mathematics` keyword and returns immediately — this branch never touches the environment or scheduler prompts below.
+
+### Environment Setup (Simulation and PostProcessing only)
+
+Both remaining branches need to know the cluster environment before they can generate anything. In a properly configured build, none of this is interactive — it's baked in at compile time via CMake (`BUILD_OPENMPI_MODULE`, `BUILD_FFTW_MODULE`, `BUILD_GROMACS_DIR`, `BUILD_PLUMED_DIR`, `BUILD_MD_ENGINE`). The login only falls back to asking when a value comes in empty:
+
+- **OpenMPI package name**
+- **FFTW package name**
+- **MD engine** — LAMMPS or GROMACS. This is fixed at build time and is never asked interactively.
+- **GROMACS installation location** — validated by checking for a `bin/` subdirectory; only relevant when the engine is GROMACS.
+- **PLUMED installation location** — same `bin/` check; only requested here when the engine is GROMACS. (LAMMPS runs that opt into PLUMED are asked again for this later, in the Order Parameter step below.)
+
+### PostProcessing Branch
+
+Selecting PostProcessing asks for a partition, max runtime, and email, then:
+
+> **Exporting from binary files? (after postprocessing)** (Yes: 1, No: 2)
+
+**No → Standard Postprocessing:** prompts for the most recent run type, the completed run directory, and a new (non-existent) folder name. Probabilistic runs additionally require a **groname file**, which maps probabilistic outputs back to their original structure names. This generates `PostProcessing.sh`.
+
+**Yes → Binary Export:** prompts for a constant-topology flag (GROMACS only, cross-checked against `topol.top`/`index.ndx` in the working directory), a postprocessed directory (validated to contain `.cpt` files), and an output folder name. If the engine is GROMACS, it additionally asks for a root directory of the original `.gro` files and cross-references it against the `.cpt` files with `gronamechecker` to confirm every checkpoint has a matching source structure. This generates `CPTExport.sh`.
+
+Both scripts should be submitted on a partition that isn't scavenge/interruption-prone — see [Binary Export](#binary-export) below for why.
+
+### Simulation Branch
+
+This is the only branch that reaches full run configuration.
 
 **Scheduler settings:**
 - Controller partition
-- Controller max runtime, validated with `D-HH:MM:SS` or `HH:MM:SS` formatting
-- Email address
+- Controller max runtime (`D-HH:MM:SS`/`HH:MM:SS`)
+- Email
 - Runner partition
-- Runner max runtime, validated with `D-HH:MM:SS` or `HH:MM:SS` formatting
-- Runner core count, validated to be a positive integer
+- Runner max runtime (same format)
+- Runner core count (positive integer)
 
 **Simulation settings:**
-- MD step size in picoseconds, validated to be a positive float
-- MD engine (LAMMPS or GROMACS)
+- MD step size in picoseconds (positive float). The MD engine itself is not asked here — it's already fixed by the environment setup step above.
 
-### ffs.mdp Validation
+**`ffs.mdp` validation** — checked immediately after step size is collected, using the already-fixed engine:
+- **GROMACS** — requires `gen-vel`, `gen-temp`, `gen-seed`, `nsteps`, `dt`.
+- **LAMMPS** — requires a temperature line (`nvt`/`npt` containing `temp`) and a `timestep` line. A `velocity` line causes an immediate error exit, since velocity initialization is handled internally and an explicit line would conflict with it.
 
-The `ffs.mdp` file in the working directory is checked immediately after the MD engine is selected. The software reads the file and verifies that all required fields are present. Missing fields are reported individually before the login exits.
+Missing fields are reported individually before the login exits.
 
-**GROMACS** — checks for: `gen-vel`, `gen-temp`, `gen-seed`, `nsteps`, `dt`
+**Order parameter validation:**
+- If the engine is LAMMPS, the user is asked whether they're using PLUMED or a custom C++ order parameter; if custom, the filename is recorded. GROMACS runs always assume PLUMED.
+- If PLUMED is in use, `plumed.dat` is checked for a `COMMITTOR` block, a `PRINT` line, and a `FLUSH` line, with the `COMMITTOR` block's internal line ordering verified via a tick counter. Each missing or malformed piece is reported individually.
 
-**LAMMPS** — checks for: a temperature line (`nvt` or `npt` containing `temp`), a `timestep` line. If a `velocity` line is found the login exits immediately with an error, as velocity initialization is handled internally and an explicit line will cause a conflict.
+**Run type and structure files:**
+- **Output folder name** (regex-validated to safe characters, must not already exist), **run type** (Basin 0 / Probabilistic 1 / Exploration 2), and **OP stride** (must be > 0) are collected first.
+- The user then supplies a **structure file delimiter** (including the `.`, e.g. `.gro`) and a **structure file directory**. For GROMACS, the delimiter must be `.gro` or `.cpt`. The software checks that matching files exist and are integer-named, repeating the prompt until a valid combination is given.
+- For GROMACS with a `.cpt` delimiter, a **root directory** of the original `.gro` files is additionally required and cross-checked with `gronamechecker`.
+- For GROMACS with variable topology, matching `.top`/`.ndx` files are required alongside each structure file; with constant topology, `topol.top`/`index.ndx` are required in the working directory instead.
 
-### Order Parameter Validation
+**Run-type-specific parameters:**
+- **Basin / Exploration** — number of MD steps (positive int), batch size (0 auto-fills to the number of input files).
+- **Probabilistic** — batch size (positive int), max crossings before interruption, trajectories per folder.
+- **Basin / Probabilistic** — λ_A and goal lambda, re-prompted if they're equal.
 
-If using LAMMPS, the user is asked whether they are using PLUMED or a custom C++ order parameter. If using a custom function, the filename is recorded. For all other cases PLUMED is assumed.
+Once every input validates, the login calls `writebash`, generating `AdSampControl.sh` and `AdSamp.sh`. The user submits `AdSampControl.sh` to the scheduler to start the run.
 
-If using PLUMED, `plumed.dat` in the working directory is checked for the following, each reported individually if missing:
-
-- A `COMMITTOR` block
-- A `PRINT` line
-- A `FLUSH` line
-- Correct internal ordering of the `COMMITTOR` block — the software steps through the block line by line using a tick counter and exits with an error if the sequence is malformed
-
-### Structure File Validation
-
-The user provides a file delimiter (including the `.`, e.g. `.gro`) and a structure file directory. The software checks that files of the given type exist in that directory and are named with integers. For GROMACS runs, the delimiter must be either `.gro` or `.cpt` — any other value is rejected immediately.
-
-If using GROMACS with variable atom counts, the user is asked whether topology is constant. If not, the software checks that matching `.top` and `.ndx` files exist alongside each structure file. If constant, it checks for `topol.top` and `index.ndx` in the working directory.
-
-If the delimiter is `.cpt` and the engine is GROMACS, the user is additionally prompted for a root directory containing the original `.gro` files. This directory is validated and cross-referenced against the `.cpt` files using `gronamechecker` to confirm that every checkpoint has a matching source structure.
-
-This loop repeats until a valid combination of delimiter and directory is provided.
-
-### Run Type Parameters
-
-The user then specifies:
-
-- **Output folder name** — validated against a regex to ensure it contains only safe characters and does not already exist
-- **Run type** — Basin (0), Probabilistic (1), or Exploration (2)
-- **Order parameter stride** — how often the OP is evaluated, must be greater than 0
-
-**Basin and Exploration additionally prompt for:**
-- Number of MD steps, validated to be a positive integer
-- Batch size (entering 0 sets batch size to the number of input files automatically), validated to be a non-negative integer
-
-**Probabilistic additionally prompts for:**
-- Batch size, validated to be a positive integer
-- Max crossings before interruption, validated to be a positive integer
-- Trajectories per folder, validated to be a positive integer
-
-**Basin and Probabilistic additionally prompt for:**
-- λ_A (return boundary)
-- Goal lambda (target milestone)
-- These are re-prompted if equal, as equal bounds are invalid
+For more information regarding validity of inputs check [Input Files](/docs/Inputfiles.md).
 
 ### Output
 
