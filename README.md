@@ -48,14 +48,24 @@ Requires:
 
 ## Installation
 
-AdSamp can be compiled in two different modes depending on the MD engine being used.
+AdSamp can be compiled in two different modes depending on the MD engine being used. First load OpenMPI, FFTW, and make all with the same gcc. 
 
 ### GROMACS build
 
 For GROMACS simulations, compile with:
 
 ```bash
-mpicxx -std=c++17 AdSamp.cpp orderparameterpicker.cpp -o AdSamp -I.
+mkdir build
+```
+```bash
+cd build
+```
+
+```bash
+cmake .. -DMD_ENGINE=GROMACS -DGROMACS_DIR=/home/mal258/ManuelsGromacs -DPLUMED_DIR=/home/mal258/ManuelsPlumed
+```
+```bash
+make
 ```
 
 ### LAMMPS build
