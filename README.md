@@ -120,7 +120,7 @@ Before running the login flow, ensure the following are in place:
 
 - Structure files in a single directory, named with integers and a shared delimiter (e.g. `1.gro`, `2.gro`)
 - `ffs.mdp` in the working directory with all required fields for your MD engine
-- `plumed.dat` in the working directory with a `COMMITTOR`, `PRINT`, and `FLUSH` section
+- `plumed.dat` (if not using a custom order parameter function with LAMMPS) in the working directory with a `COMMITTOR`, `PRINT`, and `FLUSH` section
 
 See [Input Files](docs/Inputfiles.md) for full requirements and examples.
 
