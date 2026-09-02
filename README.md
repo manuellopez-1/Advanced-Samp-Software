@@ -48,7 +48,7 @@ Requires:
 
 ## Installation
 
-AdSamp can be compiled in two different modes depending on the MD engine being used. First load OpenMPI, FFTW, and make all with the same gcc. 
+AdSamp can be compiled in two different modes depending on the MD engine being used. First load OpenMPI, FFTW, and cmake all with the same gcc. 
 
 ### GROMACS build
 
@@ -74,8 +74,22 @@ make
 For LAMMPS simulations, compile with:
 
 ```bash
-mpicxx -std=c++17 -DUSE_LAMMPS AdSamp.cpp orderparameterpicker.cpp -o AdSamp -I. -I/pathtolammps/include -L/pathtolammps/lib64 -llammps -Wl,-rpath,/pathtolammps/lib64
+mkdir build
 ```
+```bash
+cd build
+```
+```bash
+cmake .. -DMD_ENGINE=LAMMPS -DLAMMPS_ROOT=/home/mal258/ManuelsLammps -DPLUMED_DIR=/home/mal258/ManuelsPlumed
+```
+With your own PLUMED path or if LAMMPS is compiled without PLUMED and a custom order parameter is being used,
+```bash
+cmake .. -DMD_ENGINE=LAMMPS -DLAMMPS_ROOT=/home/mal258/ManuelsLammps
+```
+```bash
+make
+```
+
 
 
 All further interactions with the software use:
