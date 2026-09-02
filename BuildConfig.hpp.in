@@ -1,0 +1,6 @@
+#pragma once
+
+#define BUILD_OPENMPI_MODULE "@DETECTED_OPENMPI@"
+#define BUILD_FFTW_MODULE    "@FFTW_MODULE@"
+#define BUILD_GROMACS_DIR    "@GROMACS_DIR@"
+#define BUILD_PLUMED_DIR     "@PLUMED_DIR@"

@@ -31,6 +31,7 @@
 #include <iomanip>
 #include <limits>
 #include <unistd.h> //atomic writing thing, no path race condition
+#include "BuildConfig.hpp"
 
 volatile sig_atomic_t stop_requested = 0;
 
@@ -1979,14 +1980,27 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
         }
     }
     //part one packages
-    std::string OPENMPI  = ask<std::string>("OpenMPI package name");
-    std::string FFTW = ask<std::string>("FFTW package name");
-    int MDengine = ask<int>("MD Calculator (0: LAMMPS, 1: GROMACS)",[](int x){return x==0 || x==1;});
-    std::string gromacslocation="";
-    if (MDengine ==1){
-        gromacslocation = ask<std::string>("Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs)",[](const std::string& s){return std::filesystem::exists(s+"/bin") && std::filesystem::is_directory(s+"/bin");});//check for bin
+    std::string OPENMPI = BUILD_OPENMPI_MODULE;
+    if (OPENMPI.empty()){
+        OPENMPI  = ask<std::string>("OpenMPI package name");
     }
-    std::string plumedlocation = ask<std::string>("Plumed Installation Location (ex: /home/mal258/ManuelsPlumed)",[](const std::string& s){return std::filesystem::exists(s+"/bin") && std::filesystem::is_directory(s+"/bin");});
+    std::string FFTW = BUILD_FFTW_MODULE;
+    if (FFTW.empty()){
+        FFTW = ask<std::string>("FFTW package name");
+    }
+    int MDengine = ask<int>("MD Calculator (0: LAMMPS, 1: GROMACS)",[](int x){return x==0 || x==1;});
+    std::string gromacslocation= BUILD_GROMACS_DIR;
+    if (MDengine==1 ){
+        if (gromacslocation.empty() || !std::filesystem::exists(gromacslocation+"/bin") ||  !std::filesystem::is_directory(gromacslocation+"/bin")){
+            gromacslocation = ask<std::string>("Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs)",[](const std::string& s){return std::filesystem::exists(s+"/bin") && std::filesystem::is_directory(s+"/bin");});
+        }
+    }
+    std::string plumedlocation = BUILD_PLUMED_DIR;
+    if (MDengine==1){
+        if (plumedlocation.empty() || !std::filesystem::exists(plumedlocation+"/bin") ||  !std::filesystem::is_directory(plumedlocation+"/bin")){
+            plumedlocation = ask<std::string>("Plumed Installation Location (ex: /home/mal258/ManuelsPlumed)",[](const std::string& s){return std::filesystem::exists(s+"/bin") && std::filesystem::is_directory(s+"/bin");});
+        }
+    }
     if (query ==2){
         int isExport = ask<int>("Exporting from binary files? (after postprocessing) (Yes: 1, No: 2)",[](int x){return x==1 || x==2;});
         std::string partition = ask<std::string>("Partition");
@@ -2112,6 +2126,10 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
         usePLMD = ask<int>("Using PLUMED (1: yes, 0: no)",[](int x){return x==1 || x==0;});
         if (usePLMD ==0){
             CUSTOMOP = ask<std::string>("Custom OP Filename");
+        }else{
+            if (plumedlocation.empty() || !std::filesystem::exists(plumedlocation+"/bin") ||  !std::filesystem::is_directory(plumedlocation+"/bin")){
+                plumedlocation = ask<std::string>("Plumed Installation Location (ex: /home/mal258/ManuelsPlumed)",[](const std::string& s){return std::filesystem::exists(s+"/bin") && std::filesystem::is_directory(s+"/bin");});
+            }
         }
     }
     if (usePLMD ==1){
