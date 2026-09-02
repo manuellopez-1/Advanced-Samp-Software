@@ -113,13 +113,19 @@ std::unique_ptr<OrderParameter> createOrderParameter(const std::string& name) {
 
 ### 4. Add to the build
 
-Add `MyOP.cpp` to the compile command alongside the other sources:
+Add `MyOP.cpp` to the compile command within the `CMakeLists.txt` file, find the following line (102)/
 
 ```bash
-mpicxx -std=c++17 AdSamp.cpp orderparameterpicker.cpp MyOP.cpp -o AdSamp -I. -I/pathtolammps/include -L/pathtolammps/lib64 -llammps -Wl,-rpath,/pathtolammps/lib64
+add_executable(AdSamp AdSamp.cpp orderparameterpicker.cpp)
+```
+and insert your `.cpp` file, example:
+
+```bash
+add_executable(AdSamp AdSamp.cpp orderparameterpicker.cpp MyOP.cpp)
 ```
 
-Then pass `MyOP` as the `CUSTOMOP` argument when launching AdSamp.
+
+Then CMAKE as usual.
 
 ### Example (Atomic Distance)
 
@@ -136,10 +142,18 @@ if (name == "AtomDistance")
     return std::make_unique<AtomDistance>();
 ```
 
-**Compile Command`** — Add the Custom OP to the executable
+**Compile Command`** — Add the Custom OP to the `CMakeLists.txt`
+find the following line (102)/
+
+```bash
+add_executable(AdSamp AdSamp.cpp orderparameterpicker.cpp)
 ```
-mpicxx -std=c++17 -DUSE_LAMMPS AdSamp.cpp orderparameterpicker.cpp AtomDistance.cpp -o AdSamp -I. -I/home/mal258/ManuelsLammps/include -L/home/mal258/ManuelsLammps/lib64 -llammps -Wl,-rpath,/home/mal258/ManuelsLammps/lib64
+and insert the new `.cpp` file, example:
+
+```bash
+add_executable(AdSamp AdSamp.cpp orderparameterpicker.cpp AtomDistance.cpp)
 ```
+
 
 To use a different pair of atoms, change `TAG1` and `TAG2` in `AtomDistance.hpp` to the desired global atom IDs. To generalise to a group of atoms (e.g. a centre of mass), accumulate weighted sums in the local arrays and change the final reduction and return expression accordingly.
 
