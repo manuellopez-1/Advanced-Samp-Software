@@ -64,6 +64,7 @@ cd build
 ```bash
 cmake .. -DMD_ENGINE=GROMACS -DGROMACS_DIR=/home/mal258/ManuelsGromacs -DPLUMED_DIR=/home/mal258/ManuelsPlumed
 ```
+With your own GMX path as per above.
 ```bash
 make
 ```
