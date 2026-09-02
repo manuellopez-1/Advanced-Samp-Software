@@ -87,6 +87,14 @@ if(MD_ENGINE STREQUAL "GROMACS")
     message(STATUS "FFTW module: ${FFTW_MODULE}")
 endif()
 
+if(MD_ENGINE STREQUAL "LAMMPS")
+    set(MD_ENGINE_ID 0)
+else()
+    set(MD_ENGINE_ID 1)
+endif()
+
+configure_file(${CMAKE_SOURCE_DIR}/BuildConfig.hpp.in ${CMAKE_BINARY_DIR}/BuildConfig.hpp @ONLY)
+
 configure_file(${CMAKE_SOURCE_DIR}/BuildConfig.hpp.in ${CMAKE_BINARY_DIR}/BuildConfig.hpp @ONLY)
 
 add_executable(AdSamp AdSamp.cpp orderparameterpicker.cpp)

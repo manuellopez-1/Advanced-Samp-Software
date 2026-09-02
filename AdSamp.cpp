@@ -1988,7 +1988,8 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
     if (FFTW.empty()){
         FFTW = ask<std::string>("FFTW package name");
     }
-    int MDengine = ask<int>("MD Calculator (0: LAMMPS, 1: GROMACS)",[](int x){return x==0 || x==1;});
+    //int MDengine = ask<int>("MD Calculator (0: LAMMPS, 1: GROMACS)",[](int x){return x==0 || x==1;}); //switching to a compile time MDengine
+    int MDengine = BUILD_MD_ENGINE
     std::string gromacslocation= BUILD_GROMACS_DIR;
     if (MDengine==1 ){
         if (gromacslocation.empty() || !std::filesystem::exists(gromacslocation+"/bin") ||  !std::filesystem::is_directory(gromacslocation+"/bin")){
