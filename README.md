@@ -157,6 +157,8 @@ AdSamp/
 -orderparameterpicker.cpp / .h
 -tutorials/
 -templates/
+-BuildConfig.hpp.in
+-CMakeLists.txt
   -
   - 
   -
