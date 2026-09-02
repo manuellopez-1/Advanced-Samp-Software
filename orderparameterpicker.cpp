@@ -8,5 +8,5 @@ std::unique_ptr<OrderParameter> createOrderParameter(const std::string& name){
     //     return std::make_unique<MyOP>();
     // }
 
-    throw std::runtime_error("Unknown CUSTOMOP '" + name +"'. Valid options: Biggest, AtomDistance");
+    throw std::runtime_error("Unknown CUSTOMOP '" + name );
 }
