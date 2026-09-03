@@ -22,26 +22,21 @@ Next, copy the following files into the AdSamp working directory [topol.top](/tu
 
 With the system set up and the script compiled, run `./AdSamp` to begin login interaction. Input the following:
 1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 1
-2. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
-3. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-4. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
-5. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
-6. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-7. Controller Partition (maximize runtime): | pi_balou
-8. Controller Max Run Time (D-HH:MM:SS): | 24:00:00
-9. email (write 0 for no email): | manuel.lopez@yale.edu
-10. Runner Partition (maximize cores): | pi_balou
-11. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
-12. Runner Cores: | 4
-13. MD Step Size (ps): | .001
-14. Output folder: | Exploration
-15. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
-16. OP Stride: | 100
-17. Structure File Delimeter (Including .): | .gro
-18. Structure File Directory: | Inputs
-19. Constant Topology? (one index and topology file in working directory applies to all structures), 0: no, 1: yes: | 1
-20. Desired Number of Steps: | 100000
-21. Batch Size (for 1 per file return 0): | 0
+2. Controller Partition (maximize runtime): | pi_balou
+3. Controller Max Run Time (D-HH:MM:SS): | 24:00:00
+4. email (write 0 for no email): | manuel.lopez@yale.edu
+5. Runner Partition (maximize cores): | pi_balou
+6. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
+7. Runner Cores: | 4
+8. MD Step Size (ps): | .001
+9. Output folder: | Exploration
+10. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
+11. OP Stride: | 100
+12. Structure File Delimeter (Including .): | .gro
+13. Structure File Directory: | Inputs
+14. Constant Topology? (one index and topology file in working directory applies to all structures), 0: no, 1: yes: | 1
+15. Desired Number of Steps: | 100000
+16. Batch Size (for 1 per file return 0): | 0
 
 You will notice safety features throughout, for example if you misformat the run times you will be prompted to retype this. 
 
@@ -58,18 +53,13 @@ Once the simulation has run all outputs described in [outputs](/docs/outputfiles
 To begin postprocessing, run `./AdSamp` to begin login interaction. Input the following:
 
 1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 2
-2. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
-3. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-4. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
-5. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
-6. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-7. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 2
-8. Partition: | pi_balou
-9. Max Run Time (D-HH:MM:SS): | 24:00:00
-10. email (write 0 for no email): | manuel.lopez@yale.edu
-11. Most Recent Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
-12. Completed Run Directory: | Exploration
-13. Postprocessing folder name: | ProcessedExploration
+2. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 2
+3. Partition: | pi_balou
+4. Max Run Time (D-HH:MM:SS): | 24:00:00
+5. email (write 0 for no email): | manuel.lopez@yale.edu
+6. Most Recent Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 2
+7. Completed Run Directory: | Exploration
+8. Postprocessing folder name: | ProcessedExploration
 
 Once these inputs have been given, a file called `PostProcessing.sh` will be created, submit it using `sbatch PostProcessing.sh` to develop a postprocessed folder, for more information on this process read [Algorithms](/docs/algorithms.md).
 
@@ -80,29 +70,25 @@ Once these inputs have been given, a file called `PostProcessing.sh` will be cre
 The next step is a basin simulation using the outputs of the exploration as an input run `./AdSamp` to begin login interaction. Input the following:
 
 1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 1
-2. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
-3. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-4. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
-5. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
-6. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-7. Controller Partition (maximize runtime): | pi_balou
-8. Controller Max Run Time (D-HH:MM:SS): | 24:00:00
-9. email (write 0 for no email): | manuel.lopez@yale.edu
-10. Runner Partition (maximize cores): | pi_balou
-11. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
-12. Runner Cores: | 4
-13. MD Step Size (ps): | .001
-14. Output folder: | Basin
-15. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 0
-16. OP Stride: | 100
-17. Structure File Delimeter (Including .): | .cpt
-18. Structure File Directory: | ProcessedExploration
-19. Constant Topology? (one index and topology file in working directory applies to all structures), 0: no, 1: yes: 1
-20. Root directory (where .gro files are): | Inputs
-21. Desired Number of Steps: | 10000000
-22. Batch Size (for 1 per file return 0): | 0
-23. lambda_A: | 7
-24. Goal Lambda: | 4
+2. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
+3. Controller Partition (maximize runtime): | pi_balou
+4. Controller Max Run Time (D-HH:MM:SS): | 24:00:00
+5. email (write 0 for no email): | manuel.lopez@yale.edu
+6. Runner Partition (maximize cores): | pi_balou
+7. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
+8. Runner Cores: | 4
+9. MD Step Size (ps): | .001
+10. Output folder: | Basin
+11. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 0
+12. OP Stride: | 100
+13. Structure File Delimeter (Including .): | .cpt
+14. Structure File Directory: | ProcessedExploration
+15. Constant Topology? (one index and topology file in working directory applies to all structures), 0: no, 1: yes: 1
+16. Root directory (where .gro files are): | Inputs
+17. Desired Number of Steps: | 10000000
+18. Batch Size (for 1 per file return 0): | 0
+19. lambda_A: | 7
+20. Goal Lambda: | 4
 
 Now launch `sbatch AdSampControl.sh` to begin the basin simulation.
 
@@ -119,19 +105,14 @@ Now, in order for this run to be used as an input for the next simulation, the r
 ### Input interaction (Postprocessing)
 To begin postprocessing, run `./AdSamp` to begin login interaction. Input the following:
 
-1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
-2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
-4. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
-5. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-6. Postprocessing (Yes: 1, No: 2): | 1
-7. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 2
-8. Partition: | pi_balou
-9. Max Run Time (D-HH:MM:SS): | 24:00:00
-10. email (write 0 for no email): | manuel.lopez@yale.edu
-11. Most Recent Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 0
-12. Completed Run Directory: | Basin
-13. Postprocessing folder name: | BasinProcessed
+1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 2
+2. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 2
+3. Partition: | pi_balou
+4. Max Run Time (D-HH:MM:SS): | 24:00:00
+5. email (write 0 for no email): | manuel.lopez@yale.edu
+6. Most Recent Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 0
+7. Completed Run Directory: | Basin
+8. Postprocessing folder name: | BasinProcessed
 
 Once these inputs have been given, a file called `PostProcessing.sh` will be created, submit it using `sbatch PostProcessing.sh` to develop a postprocessed folder, for more information on this process read [Algorithms](/docs/algorithms.md).
 
