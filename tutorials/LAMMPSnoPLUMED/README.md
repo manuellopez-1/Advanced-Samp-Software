@@ -26,12 +26,8 @@ In this example PLUMED will not be employed towards calculating the order parame
 ### Input interaction
 
 With the system set up and the script compiled, run `./AdSamp` to begin login interaction. Input the following:
-1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
-2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
-4. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-5. Postprocessing (Yes: 1, No: 2): | 2
-6. Controller Partition (maximize runtime): | pi_balou
+1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 1
+2. Controller Partition (maximize runtime): | pi_balou
 7. Controller Max Run Time (D-HH:MM:SS): | 24:00:00
 8. email (write 0 for no email): | manuel.lopez@yale.edu
 9. Runner Partition (maximize cores): | pi_balou
