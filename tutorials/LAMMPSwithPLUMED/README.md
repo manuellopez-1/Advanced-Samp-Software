@@ -142,29 +142,25 @@ When the folder `BasinReadable` has been developed, these files may all be read 
 
 Now that the basin run has measured the initial flux between two milestones and the run has been postprocessed, a probabilistic simulation may now be run. Trigger `./AdSamp` to begin login interaction. Input the following:
 
-1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
-2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. MD Calculator (0: LAMMPS, 1: GROMACS): | 0
-4. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-5. Postprocessing (Yes: 1, No: 2): | 2
-6. Controller Partition (maximize runtime): | pi_balou
-7. Controller Max Run Time (D-HH:MM:SS): | 24:00:00
-8. email (write 0 for no email): | manuel.lopez@yale.edu
-9. Runner Partition (maximize cores): | pi_balou
-10. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
-11. Runner Cores: | 4
-12. MD Step Size (ps): | .001
-13. Using PLUMED (1: yes, 0: no): | 1
-14. Output folder: | Probabilistic
-15. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 1
-16. OP Stride: | 100
-17. Structure File Delimeter (Including .): | .cpt
-18. Structure File Directory: | BasinProcessed
-19. Batch Size: | 2
-20. Max Crossings Before Interruption: | 200
-21. lambda_A: | 7
-22. Goal Lambda: | 3
-23. Trajectories per folder: | 100
+1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 1
+2. Controller Partition (maximize runtime): | pi_balou
+3. Controller Max Run Time (D-HH:MM:SS): | 24:00:00
+4. email (write 0 for no email): | manuel.lopez@yale.edu
+5. Runner Partition (maximize cores): | pi_balou
+6. Runner Max Run Time (D-HH:MM:SS): | 24:00:00
+7. Runner Cores: | 4
+8. MD Step Size (ps): | .001
+9. Using PLUMED (1: yes, 0: no): | 1
+10. Output folder: | Probabilistic
+11. Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 1
+12. OP Stride: | 100
+13. Structure File Delimeter (Including .): | .cpt
+14. Structure File Directory: | BasinProcessed
+15. Batch Size: | 2
+16. Max Crossings Before Interruption: | 200
+17. lambda_A: | 7
+18. Goal Lambda: | 3
+19. Trajectories per folder: | 100
 
 Now launch `sbatch AdSampControl.sh` to begin the probabilistic simulation.
 
