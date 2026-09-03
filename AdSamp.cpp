@@ -1106,7 +1106,7 @@ void pathedit(std::string newfolder,int& runtype, int direction, double leftboun
     std::filesystem::rename(temporarypath, Path); //this is to avoid race condition on path
 }
 
-void DeleteExtraFiles(std::string newfolder, int runtype){
+void DeleteExtraFiles(std::string newfolder, int runtype, std::vector<std::string> Extras){
     if (runtype ==3){//ffs operation
         std::vector<std::string> HashFiles = listdirStart(newfolder, "#");
         for (const auto&file : HashFiles){
@@ -1116,7 +1116,14 @@ void DeleteExtraFiles(std::string newfolder, int runtype){
             }
         }
         //std::vector<std::string> endings = {".edr", ".log", ".tpr", ".trr", ".xtc", "_prev.cpt"};
-        std::vector<std::string> endings = {".log", ".tpr", "_prev.cpt"};
+        std::vector<std::string> firsts = {".log", ".tpr", "_prev.cpt"};    
+        std::vector<std::string> endings;
+        for (const auto&string:firsts){
+            endings.push_back(string);
+        }
+        for (const auto&string:Extras){
+            endings.push_back(string);
+        }
         for (const auto&ending: endings){
             std::vector<std::string> TRRs = listdirEnding(newfolder, ending);
             for (const auto& file: TRRs){
@@ -1142,7 +1149,8 @@ void DeleteExtraFiles(std::string newfolder, int runtype){
 
 void CleanUp(std::string newfolder, int& runtype, int direction, double leftbound, double rightbound,int& weshouldstop, long long nsteps, double strides, double deltaT, int calculator , int usePLMD, int targetline){
     double PLMDSTEPSIZE = strides*deltaT;
-    DeleteExtraFiles(newfolder, runtype);
+    std::vector<std::string> empty;
+    DeleteExtraFiles(newfolder, runtype,empty);
     int feedintoRC = 2*usePLMD-calculator; //corelary to how many lines should skip when appending RC, gromacs with PLMD skip 1 line, lammps with plumed skip 2, lammps without skip nothing
     std::vector<std::string> restartcolvars = listdirStart(newfolder, "RC");//RC file combiner, could do this via last entry and path but this is clean enough and will translate better in FFS
     if (!restartcolvars.empty()){
@@ -2864,7 +2872,8 @@ void gromacsExport(Context* ctx,std::string groname, std::string cptfile, std::s
         FILE* process = popen(("srun  --overlap --overcommit --cpu-bind=none --mem-bind=none --mem=0 gmx_mpi trjconv -s sil.tpr -f " + TRR + " -o " + outputname + " -center -pbc mol").c_str(), "w");
         fputs("0\n0\n",process); //hopefully this works, in python it was a subprocess command that allowed multistep inputs
         pclose(process);
-        DeleteExtraFiles(".", 3);
+        std::vector<std::string> Extras = {".trr", ".edr"};
+        DeleteExtraFiles(".", 3,Extras);
     }
     ctx->barrier();
 }
