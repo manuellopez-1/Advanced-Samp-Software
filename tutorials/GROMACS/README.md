@@ -125,18 +125,15 @@ Initial Configuration,   Propername,   Crossing Time,   Crossing Name
 ```
 Noticeably  these `,cpt` files are binary and so cannot be read. As such, the next step will be to export them to a readable format. Run `./AdSamp` from the working directory to begin login interaction. Input the following:
 
-1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
-2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
-4. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
-5. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-6. Postprocessing (Yes: 1, No: 2): | 1
-7. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 1
-8. Partition: | pi_balou
-9. Max Run Time (D-HH:MM:SS): | 24:00:00
-10. email (write 0 for no email): | manuel.lopez@yale.edu
-11. Postprocessed Directory: | BasinProcessed
-12. Output folder name: | BasinReadable
+1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 2
+2. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 1
+3. Partition: | pi_balou
+4. Max Run Time (D-HH:MM:SS): | 24:00:00
+5. email (write 0 for no email): | manuel.lopez@yale.edu
+6. Constant Topology? (one index and topology file in working directory applies to all structures), 0: no, 1: yes: | 1
+7. Postprocessed Directory: | BasinProcessed
+8. Output folder name: | BasinReadable
+9. Root directory (where .gro files are): | Inputs
 
 Once these inputs have been given, a file called `CPTExport.sh` will be created, submit it using `sbatch CPTExport.sh` to develop a readable folder, for more information on this process read [Algorithms](/docs/algorithms.md).
 
@@ -148,7 +145,7 @@ When the folder `BasinReadable` has been developed, these files may all be read 
 
 Now that the basin run has measured the initial flux between two milestones and the run has been postprocessed, a probabilistic simulation may now be run. Trigger `./AdSamp` to begin login interaction. Input the following:
 
-1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
+1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 1
 2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
 3. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
 4. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
