@@ -146,11 +146,6 @@ When the folder `BasinReadable` has been developed, these files may all be read 
 Now that the basin run has measured the initial flux between two milestones and the run has been postprocessed, a probabilistic simulation may now be run. Trigger `./AdSamp` to begin login interaction. Input the following:
 
 1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 1
-2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
-4. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
-5. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-6. Postprocessing (Yes: 1, No: 2): | 2
 7. Controller Partition (maximize runtime): | pi_balou
 8. Controller Max Run Time (D-HH:MM:SS): | 24:00:00
 9. email (write 0 for no email): | manuel.lopez@yale.edu
