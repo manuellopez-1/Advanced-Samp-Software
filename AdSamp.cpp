@@ -1711,7 +1711,7 @@ std::string safe(const std::string &s) {
 }
 
 //this function makes the bash scripts
-void writebash(std::string CPartition, std::string Cruntime,std::string email, std::string RPartition, std::string Rruntime, int cores, int MDengine, std::string CUSTOMOP, std::string Outputfolder, int runtype, int stride, std::string Delimeter, std::string structurefilesloc, std::string rootdirectory, long long nsteps, int batchsize, int perfoldertrajectories, double leftbound, double rightbound, int maxcrossings,std::string gromacslocation, std::string plumedlocation, std::string OPENMPI, std::string FFTW,double deltaT, int constanttopology){
+void writebash(std::string CPartition, std::string Cruntime,std::string email, std::string RPartition, std::string Rruntime, int cores, int MDengine, std::string CUSTOMOP, std::string Outputfolder, int runtype, int stride, std::string Delimeter, std::string structurefilesloc, std::string rootdirectory, long long nsteps, int batchsize, int perfoldertrajectories, double leftbound, double rightbound, int maxcrossings,std::string gromacslocation, std::string plumedlocation, std::string OPENMPI, std::string FFTW,double deltaT, int constanttopology, std::string LAMMPSMODULE){
     std::string commandline ="srun -n 1 ./AdSamp " +std::to_string(runtype) + " "+ safe(Outputfolder) + " "+ std::to_string(leftbound) + " "+ std::to_string(rightbound) +" "+ std::to_string(maxcrossings)+" &";
     //adjust to also pass the batchsize and runs per trajectory
     std::ofstream controller("AdSampControl.sh");
@@ -1733,6 +1733,9 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     controller<< "module purge"<<std::endl;
     controller<<"module load "<<OPENMPI<<std::endl;
     controller<<"module load "<<FFTW<<std::endl;
+    if (!LAMMPSMODULE.empty()){
+        controller<<"module load "<<LAMMPSMODULE<<std::endl;
+    }
     controller<<"export PATH=$PATH:"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
     controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
     controller<<"trap \"echo -n 'TIMEOUT @ '; date; echo 'Resubmitting...'; scontrol requeue ${SLURM_JOB_ID}\" 10"<<std::endl;
@@ -1758,6 +1761,9 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     individual<<"module purge" <<std::endl;
     individual<<"module load "<<OPENMPI<<std::endl;
     individual<<"module load "<<FFTW<<std::endl;
+    if (!LAMMPSMODULE.empty()){
+        individual<<"module load "<<LAMMPSMODULE<<std::endl;
+    }
     individual<<"export PATH=$PATH:"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
     individual<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
     if (MDengine ==0){
@@ -1844,7 +1850,7 @@ int gronamechecker(std::string rootdirectory, std::string structurefiles,std::st
     return 1;
 
 }
-void processingbash(std::string OPENMPI, std::string FFTW, std::string gromacslocation, std::string plumedlocation, std::string partition, std::string runtime, std::string email, int runtype, std::string runfolder, std::string newfoldername, std::string prior ){
+void processingbash(std::string OPENMPI, std::string FFTW, std::string gromacslocation, std::string plumedlocation, std::string partition, std::string runtime, std::string email, int runtype, std::string runfolder, std::string newfoldername, std::string prior, std::string LAMMPSMODULE ){
     std::string commandline ="srun -n 1 ./AdSamp " +safe(runfolder) + " "+ safe(newfoldername) + " "+ safe(prior) + " "+ std::to_string(runtype);
     //adjust to also pass the batchsize and runs per trajectory
     std::ofstream controller("PostProcessing.sh");
@@ -1864,13 +1870,16 @@ void processingbash(std::string OPENMPI, std::string FFTW, std::string gromacslo
     controller<<"module purge"<<std::endl;
     controller<<"module load "<<OPENMPI<<std::endl;
     controller<<"module load "<<FFTW<<std::endl;
+    if (!LAMMPSMODULE.empty()){
+        controller<<"module load "<<LAMMPSMODULE<<std::endl;
+    }
     controller<<"export PATH=$PATH:"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
     controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
 
     controller<<commandline<<std::endl;
 }
 
-void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromacslocation, std::string plumedlocation, std::string partition, std::string runtime, std::string email, int MDEngine, std::string postprocessedfolder, std::string newfoldername, int constanttopology, std::string rootdirectory){
+void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromacslocation, std::string plumedlocation, std::string partition, std::string runtime, std::string email, int MDEngine, std::string postprocessedfolder, std::string newfoldername, int constanttopology, std::string rootdirectory, std::string LAMMPSMODULE){
     //adjust to also pass the batchsize and runs per trajectory
     std::ofstream controller("CPTExport.sh");
     controller<<"#!/bin/bash"<<std::endl;
@@ -1889,6 +1898,9 @@ void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromac
     controller << "module purge" << std::endl;
     controller<<"module load "<<OPENMPI<<std::endl;
     controller<<"module load "<<FFTW<<std::endl;
+    if (!LAMMPSMODULE.empty()){
+        controller<<"module load "<<LAMMPSMODULE<<std::endl;
+    }
     controller<<"export PATH=$PATH:"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
     controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
     
@@ -1900,7 +1912,7 @@ void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromac
     }
 }
 
-void mathematicsbash(int calculationtype ,int numsteps, double deltaT, std::string Outputname, std::vector<double> Milestones,std::vector<std::string> filepaths,std::string partition, std::string runtime, std::string email){
+void mathematicsbash(int calculationtype ,int numsteps, double deltaT, std::string Outputname, std::vector<double> Milestones,std::vector<std::string> filepaths,std::string partition, std::string runtime, std::string email, std::string OPENMPI, std::string FFTW, std::string LAMMPSMODULE){
     std::string nombre;
     if (calculationtype ==0){
         nombre = "FreeEnergy.sh";
@@ -1917,6 +1929,12 @@ void mathematicsbash(int calculationtype ,int numsteps, double deltaT, std::stri
     if (email != "0"){
         Bash<<"#SBATCH --mail-user="<<email<<std::endl;
         Bash<<"#SBATCH --mail-type=end"<<std::endl;
+    }
+    Bash<< "module purge"<<std::endl;
+    Bash<<"module load "<<OPENMPI<<std::endl;
+    Bash<<"module load "<<FFTW<<std::endl;
+    if (!LAMMPSMODULE.empty()){
+        Bash<<"module load "<<LAMMPSMODULE<<std::endl;
     }
     Bash<<"./AdSamp Mathematics ";
     Bash<<calculationtype<< " "<<numsteps<<" "<<Outputname;
@@ -1940,6 +1958,16 @@ void mathematicsbash(int calculationtype ,int numsteps, double deltaT, std::stri
 
 void Login(){ //this will take in user inputs, ensure files are in order, then create a bash script for controller launch
     int query= ask<int>("Simulation (1), PostProcessing (2), Or Mathematics (3)?",[](int x){return x==1 || x==2 ||x==3;});
+    //part one packages
+    std::string OPENMPI = BUILD_OPENMPI_MODULE;
+    if (OPENMPI.empty()){
+        OPENMPI  = ask<std::string>("OpenMPI package name");
+    }
+    std::string FFTW = BUILD_FFTW_MODULE;
+    if (FFTW.empty()){
+        FFTW = ask<std::string>("FFTW package name");
+    }
+    std::string LAMMPSMODULE = BUILD_LAMMPS_MODULE;
     if (query==3){
         std::string partition = ask<std::string>("Partition");
         std::string runtime = ask<std::string>("Max Run Time (D-HH:MM:SS)",[](const std::string& s){std::regex r(R"((\d+-)?\d{1,2}:\d{2}:\d{2})");return std::regex_match(s, r);});
@@ -1963,7 +1991,7 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
             }
 
             double deltaT = ask<double>("delT (must evenly divide all milestone intervals)",[&Milestones](double x){if (x <= 0) return false;for (size_t i = 1; i < Milestones.size(); ++i){double bins=(Milestones[i]-Milestones[i-1])/x;if (std::abs(bins-std::round(bins)) > 1e-9) return false;}return true;});
-            mathematicsbash(0,numsteps, deltaT, Outputname, Milestones, filepaths,partition, runtime, email);
+            mathematicsbash(0,numsteps, deltaT, Outputname, Milestones, filepaths,partition, runtime, email, OPENMPI, FFTW,LAMMPSMODULE);
             return;
         }
         if (calculationtype ==1){
@@ -1974,19 +2002,10 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
                 filepaths.push_back(filepath);
             }
             std::vector<double> Milestones;
-            mathematicsbash(1, numsteps,0.0, Outputname, Milestones ,filepaths, partition, runtime, email);//just gonna fill out the irrelevant sections with meaningless stuff
+            mathematicsbash(1, numsteps,0.0, Outputname, Milestones ,filepaths, partition, runtime, email,OPENMPI, FFTW,LAMMPSMODULE);//just gonna fill out the irrelevant sections with meaningless stuff
             return;
             //for landscape variance only need paths
         }
-    }
-    //part one packages
-    std::string OPENMPI = BUILD_OPENMPI_MODULE;
-    if (OPENMPI.empty()){
-        OPENMPI  = ask<std::string>("OpenMPI package name");
-    }
-    std::string FFTW = BUILD_FFTW_MODULE;
-    if (FFTW.empty()){
-        FFTW = ask<std::string>("FFTW package name");
     }
     //int MDengine = ask<int>("MD Calculator (0: LAMMPS, 1: GROMACS)",[](int x){return x==0 || x==1;}); //switching to a compile time MDengine
     int MDengine = BUILD_MD_ENGINE;
@@ -2015,7 +2034,7 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
             if (runtype ==1){
                 prior = ask<std::string>("Groname File",[](const std::string& s){return std::filesystem::exists(s);});
             }
-            processingbash(OPENMPI, FFTW, gromacslocation, plumedlocation, partition, runtime, email, runtype, runfolder, newfoldername, prior);
+            processingbash(OPENMPI, FFTW, gromacslocation, plumedlocation, partition, runtime, email, runtype, runfolder, newfoldername, prior, LAMMPSMODULE);
             return;
         }else{//export from cpt requires processedfolder, rootdirectory, outputfolder, MDengine, and constant topology
             int constanttopology=0;
@@ -2040,7 +2059,7 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
                     }
                 }
             }
-            exportfromcptbash(OPENMPI, FFTW, gromacslocation, plumedlocation, partition, runtime, email, MDengine, postprocessedfolder, newfoldername, constanttopology, rootdirectory);
+            exportfromcptbash(OPENMPI, FFTW, gromacslocation, plumedlocation, partition, runtime, email, MDengine, postprocessedfolder, newfoldername, constanttopology, rootdirectory,LAMMPSMODULE);
             return;
         }
     }
@@ -2245,7 +2264,7 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
     if (runtype ==1){
         perfoldertrajectories = ask<int>("Trajectories per folder",[](int x){return x>0;});
     }
-    writebash(CPartition, Cruntime, email, RPartition, Rruntime, cores, MDengine, CUSTOMOP, Outputfolder, runtype, stride, Delimeter, structurefilesloc, rootdirectory, nsteps, batchsize, perfoldertrajectories, leftbound, rightbound, maxcrossings,gromacslocation,plumedlocation,OPENMPI, FFTW,deltaT, constanttopology);
+    writebash(CPartition, Cruntime, email, RPartition, Rruntime, cores, MDengine, CUSTOMOP, Outputfolder, runtype, stride, Delimeter, structurefilesloc, rootdirectory, nsteps, batchsize, perfoldertrajectories, leftbound, rightbound, maxcrossings,gromacslocation,plumedlocation,OPENMPI, FFTW,deltaT, constanttopology,LAMMPSMODULE);
 }
 std::string getSlurmJobID() {
     const char* id = std::getenv("SLURM_JOB_ID");

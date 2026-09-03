@@ -34,8 +34,15 @@ endif()
 
 if(MD_ENGINE STREQUAL "LAMMPS")
 	set(MD_ENGINE_ID 0)
+
+	execute_process(COMMAND bash -c "module -t list 2>&1 | grep -i lammps | head -n1" OUTPUT_VARIABLE DETECTED_LAMMPS OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+
+	message(STATUS "LAMMPS module: '${DETECTED_LAMMPS}'")
+
 	find_path(LAMMPS_INCLUDE_DIR NAMES lammps/lammps.h HINTS $ENV{LAMMPS_DIR} ${LAMMPS_ROOT} PATH_SUFFIXES include)
 	find_library(LAMMPS_LIBRARY NAMES lammps HINTS $ENV{LAMMPS_DIR} ${LAMMPS_ROOT} PATH_SUFFIXES lib lib64)
+
+
 	set(FFTW_MODULE "" CACHE STRING "FFTW module name, e.g. fftw/3.3.10 (only needed if not auto-detected from loaded modules)")
 	if(FFTW_MODULE STREQUAL "")
         	set(FFTW_MODULE "${DETECTED_FFTW}")
