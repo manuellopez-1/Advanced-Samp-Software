@@ -175,20 +175,15 @@ This run should finish rapidly, to understand the organization of the output fol
 ### PostProcessing (Probabilistic)
 To begin postprocessing and clean up the outputs (including combining the outputs of the two folders), run `./AdSamp` to begin login interaction. Input the following:
 
-1. OpenMPI package name: | Your OpenMPI module (Ex: OpenMPI/4.0.5-GCC-10.2.0-CUDA-11.3.1)
-2. FFTW package name: | Your FFTW module (Ex: FFTW.MPI/3.3.10-gompi-2022b)
-3. MD Calculator (0: LAMMPS, 1: GROMACS): | 1
-4. Gromacs Installation Location (ex: /home/mal258/ManuelsGromacs): | Your custom Gromacs directory
-5. Plumed Installation Location (ex: /home/mal258/ManuelsPlumed): | Your linked plumed directory
-6. Postprocessing (Yes: 1, No: 2): | 1
-7. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 2
-8. Partition: | pi_balou
-9. Max Run Time (D-HH:MM:SS): | 24:00:00
-10. email (write 0 for no email): | manuel.lopez@yale.edu
-11. Most Recent Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 1
-12. Completed Run Directory: | Probabilistic
-13. Postprocessing folder name: | ProbabilisticProcessed
-14. Groname File: | BasinProcessed/gronames.txt
+1. Simulation (1), PostProcessing (2), Or Mathematics (3)?: | 2
+2. Exporting from binary files? (after postprocessing) (Yes: 1, No: 2): | 2
+3. Partition: | pi_balou
+4. Max Run Time (D-HH:MM:SS): | 24:00:00
+5. email (write 0 for no email): | manuel.lopez@yale.edu
+6. Most Recent Run type (0: Basin, 1: Probabilistic, 2: Exploration): | 1
+7. Completed Run Directory: | Probabilistic
+8. Postprocessing folder name: | ProbabilisticProcessed
+9. Groname File: | BasinProcessed/gronames.txt
 
 Note that in order to have some long term correspondense between parent and children files the gronames.txt file is appended after all probabilistic steps. This file `ProbabilisticProcessed/gronames.txt` will have the full pathway of names. View [outputs](/docs/outputfiles.md) for more information on data interpretation.
 
