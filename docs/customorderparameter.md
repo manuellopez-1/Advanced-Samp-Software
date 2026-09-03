@@ -138,8 +138,9 @@ The files are given in [AtomDistance.hpp](/tutorials/LAMMPSnoPLUMED/AtomDistance
 #include "AtomDistance.hpp"   // add at the top
 
 // inside createOrderParameter, before the throw:
-if (name == "AtomDistance")
+if (name == "AtomDistance"){
     return std::make_unique<AtomDistance>();
+}
 ```
 
 **Compile Command`** — Add the Custom OP to the `CMakeLists.txt`
