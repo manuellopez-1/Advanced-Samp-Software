@@ -2278,24 +2278,18 @@ std::string getSlurmJobID() {
     const char* id = std::getenv("SLURM_JOB_ID");
     return id ? std::string(id) : "";
 }
-enum class JobStatus {Running,NotRunning,Unknown }; //this fix is to avoid the socket fail receive op glitch
 
-JobStatus isJobRunning(int jobid) {
-    std::string cmd = "squeue -h -r -j " + std::to_string(jobid) + " -o \"%i %R\" 2>&1";
+bool isJobRunning(int jobid) {
+    std::string cmd = "squeue -h -r -j " + std::to_string(jobid) + " -o \"%i %R\"";//this tests if a job is currently running
     FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) return JobStatus::Unknown;
+    if (!pipe) return false;
     char buffer[256];
     std::string target = std::to_string(jobid);
     int running = 0;
-    bool sawError = false;
     while (fgets(buffer, sizeof(buffer), pipe)) {
         std::string line(buffer);
         if (!line.empty() && line.back() == '\n')
             line.pop_back();
-        if (line.find("error") != std::string::npos) { //like the slurm error hting
-            sawError = true;
-            continue;
-        }
         if (line == target || line.rfind(target + "_", 0) == 0) {
             if (line.find("launch failed requeued held") != std::string::npos) {
                 std::cout<<"scontrol release " + line.substr(0, line.find(' '))<<std::endl;
@@ -2306,12 +2300,8 @@ JobStatus isJobRunning(int jobid) {
         }
     }
     pclose(pipe);
-    if (running==1) return JobStatus::Running; //positive evidence wins even if some other line in the same output looked like an error
-    if (sawError) return JobStatus::Unknown;
-    return JobStatus::NotRunning;
+    return running==1;  //true if one is properly running false otherwise
 }
-
-
 int submitjob(std::string scriptname){
     std::string cmd = "sbatch " + scriptname;
     FILE* pipe = popen(cmd.c_str(), "r");
@@ -2500,7 +2490,6 @@ int checkcrossings(int simtype, std::string outputfolder, double leftbound, doub
     control.close();
     return successes;
 }
-bool looksRunning(JobStatus s){ return s != JobStatus::NotRunning; }
 void controller(int simtype, std::string outputfolder, double leftbound, double rightbound, int maxcrossings){
     if (!std::filesystem::exists(outputfolder)){
         std::filesystem::create_directories(outputfolder);
@@ -2535,8 +2524,8 @@ void controller(int simtype, std::string outputfolder, double leftbound, double 
     }
     arrayjobs.close();
     //step 3. if there aren't start jobs and record their job id
-    if (subjobs ==0 || !looksRunning(isJobRunning(subjobs))){
-        //std::cout<<subjobs<<isJobRunning(subjobs)<<std::endl;
+    if (subjobs ==0 || !isJobRunning(subjobs)){
+        std::cout<<subjobs<<isJobRunning(subjobs)<<std::endl;
         subjobs = submitjob("AdSamp.sh");
         std::ofstream arrayjobs("arrayjobs.txt",std::ios::trunc);
         arrayjobs<<subjobs<<std::endl;
@@ -2544,12 +2533,12 @@ void controller(int simtype, std::string outputfolder, double leftbound, double 
     }
     //step 4. update controller outputs regularly for crossings stop once ncrossings>maxcrossings or sub jobs stop running 
     int ncrossings = 0;
-    while (looksRunning(isJobRunning(subjobs)) && ncrossings<maxcrossings){
+    while (isJobRunning(subjobs) && ncrossings<maxcrossings){
         ncrossings = checkcrossings(simtype, outputfolder, leftbound, rightbound);
         std::this_thread::sleep_for(std::chrono::seconds(60)); //so that we're not checking so so so often
     }
     ncrossings = checkcrossings(simtype, outputfolder, leftbound, rightbound);
-    //std::cout<<isJobRunning(subjobs)<<std::endl;
+    std::cout<<isJobRunning(subjobs)<<std::endl;
     std::cout<<ncrossings<<" "<<maxcrossings<<std::endl;
     if (ncrossings>=maxcrossings){
         std::string cmd = "scancel " + std::to_string(subjobs);
