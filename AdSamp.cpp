@@ -1231,7 +1231,7 @@ void Basin(Context* ctx,std::string Outputfolder, std::string runid, double left
         if (rank ==0){
             std::ifstream inputFile(basindirectoryfile);
             if (!inputFile.is_open()){
-                runtype =1; //if file can't open for any reason default to standard runtype, including if file doesn't exist
+                runtype =2; //if file can't open for any reason default to standard runtype, including if file doesn't exist
             }else{
                 inputFile>> runtype;
                 inputFile.close();
