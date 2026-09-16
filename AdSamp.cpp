@@ -1719,8 +1719,8 @@ std::string safe(const std::string &s) {
 }
 
 //this function makes the bash scripts
-void writebash(std::string CPartition, std::string Cruntime,std::string email, std::string RPartition, std::string Rruntime, int cores, int MDengine, std::string CUSTOMOP, std::string Outputfolder, int runtype, int stride, std::string Delimeter, std::string structurefilesloc, std::string rootdirectory, long long nsteps, int batchsize, int perfoldertrajectories, double leftbound, double rightbound, int maxcrossings,std::string gromacslocation, std::string plumedlocation, std::string OPENMPI, std::string FFTW,double deltaT, int constanttopology, std::string LAMMPSMODULE){
-    std::string commandline ="srun -n 1 ./AdSamp " +std::to_string(runtype) + " "+ safe(Outputfolder) + " "+ std::to_string(leftbound) + " "+ std::to_string(rightbound) +" "+ std::to_string(maxcrossings)+" &";
+void writebash(std::string CPartition, std::string Cruntime,std::string email, std::string RPartition, std::string Rruntime, int cores, int MDengine, std::string CUSTOMOP, std::string Outputfolder, int runtype, int stride, std::string Delimeter, std::string structurefilesloc, std::string rootdirectory, long long nsteps, int batchsize, int perfoldertrajectories, double leftbound, double rightbound,std::string gromacslocation, std::string plumedlocation, std::string OPENMPI, std::string FFTW,double deltaT, int constanttopology, std::string LAMMPSMODULE){
+    std::string commandline ="srun -n 1 ./AdSamp Controller " +std::to_string(runtype) + " "+ safe(Outputfolder) + " "+ std::to_string(leftbound) + " "+ std::to_string(rightbound) +" "+ " &";
     //adjust to also pass the batchsize and runs per trajectory
     std::ofstream controller("AdSampControl.sh");
     controller<<"#!/bin/bash"<<std::endl;
@@ -2246,7 +2246,6 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
     long long nsteps=1;
     int batchsize;
     int perfoldertrajectories=1;
-    int maxcrossings = std::numeric_limits<int>::max();
     if (runtype!=1){
         nsteps = ask<int>("Desired Number of Steps",[](int x){return x>0;});
         batchsize = ask<int>("Batch Size (for 1 per file return 0)",[](int x){return x>-1;});
@@ -2256,7 +2255,6 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
         }
     }else{
         batchsize = ask<int>("Batch Size",[](int x){return x>-1;});
-        maxcrossings = ask<int>("Max Crossings Before Interruption",[](int x){return x>-1;});
     }
 
     double leftbound=0; double rightbound=0;
@@ -2272,7 +2270,7 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
     if (runtype ==1){
         perfoldertrajectories = ask<int>("Trajectories per folder",[](int x){return x>0;});
     }
-    writebash(CPartition, Cruntime, email, RPartition, Rruntime, cores, MDengine, CUSTOMOP, Outputfolder, runtype, stride, Delimeter, structurefilesloc, rootdirectory, nsteps, batchsize, perfoldertrajectories, leftbound, rightbound, maxcrossings,gromacslocation,plumedlocation,OPENMPI, FFTW,deltaT, constanttopology,LAMMPSMODULE);
+    writebash(CPartition, Cruntime, email, RPartition, Rruntime, cores, MDengine, CUSTOMOP, Outputfolder, runtype, stride, Delimeter, structurefilesloc, rootdirectory, nsteps, batchsize, perfoldertrajectories, leftbound, rightbound,gromacslocation,plumedlocation,OPENMPI, FFTW,deltaT, constanttopology,LAMMPSMODULE);
 }
 std::string getSlurmJobID() {
     const char* id = std::getenv("SLURM_JOB_ID");
@@ -2490,7 +2488,7 @@ int checkcrossings(int simtype, std::string outputfolder, double leftbound, doub
     control.close();
     return successes;
 }
-void controller(int simtype, std::string outputfolder, double leftbound, double rightbound, int maxcrossings){
+void controller(int simtype, std::string outputfolder, double leftbound, double rightbound){
     if (!std::filesystem::exists(outputfolder)){
         std::filesystem::create_directories(outputfolder);
     }
@@ -2531,21 +2529,14 @@ void controller(int simtype, std::string outputfolder, double leftbound, double 
         arrayjobs<<subjobs<<std::endl;
         arrayjobs.close();
     }
-    //step 4. update controller outputs regularly for crossings stop once ncrossings>maxcrossings or sub jobs stop running 
+    //step 4. update controller outputs regularly for crossings stop once sub jobs stop running 
     int ncrossings = 0;
-    while (isJobRunning(subjobs) && ncrossings<maxcrossings){
+    while (isJobRunning(subjobs)){ 
         ncrossings = checkcrossings(simtype, outputfolder, leftbound, rightbound);
         std::this_thread::sleep_for(std::chrono::seconds(60)); //so that we're not checking so so so often
     }
     ncrossings = checkcrossings(simtype, outputfolder, leftbound, rightbound);
-    std::cout<<isJobRunning(subjobs)<<std::endl;
-    std::cout<<ncrossings<<" "<<maxcrossings<<std::endl;
-    if (ncrossings>=maxcrossings){
-        std::string cmd = "scancel " + std::to_string(subjobs);
-        std::cout<<cmd<<std::endl;
-        std::system(cmd.c_str()); 
-    }
-    
+    std::cout<<isJobRunning(subjobs)<<std::endl;    
 }
 
 double extractTime(const std::string& line) {
@@ -3522,13 +3513,12 @@ int main(int argc, char** argv) { //okay here we get the inputs and decide the r
             Exploration(ctx.get(), Outputfolder, runid, structurefiles, trail, nsteps, CUSTOMOP, rootdirectory, MDenginetype, strides,deltaT,constanttopology);
         }
     }
-    else if(argc ==6){
-        int simtype = std::stoi(argv[1]);
-        std::string outputfolder = argv[2];
-        double leftbound = std::stod(argv[3]);
-        double rightbound = std::stod(argv[4]);
-        int maxcrossings = std::stoi(argv[5]);
-        controller(simtype, outputfolder, leftbound, rightbound, maxcrossings);
+    else if (std::string(argv[1]) == "Controller"){
+        int simtype = std::stoi(argv[2]);
+        std::string outputfolder = argv[3];
+        double leftbound = std::stod(argv[4]);
+        double rightbound = std::stod(argv[5]);
+        controller(simtype, outputfolder, leftbound, rightbound);
     }else if (argc==5){
         std::string RUNFOLDER = argv[1];
         std::string NEWFOLDER = argv[2];
