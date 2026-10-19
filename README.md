@@ -1,8 +1,10 @@
 # AdSamp — Advanced Sampling for Rare Events
 
-AdSamp is a C++ software package for running Forward Flux Sampling (FFS) simulations on high performance computing clusters. It supports both LAMMPS and GROMACS as molecular dynamics engines and is designed to run scalably on scavenge partitions, requeueing automatically after interruptions and running until completion without further user input.
+AdSamp is a distributed C++/MPI software framework for conducting Forward Flux Sampling (FFS) simulations on high-performance computing clusters. Compatible with both GROMACS and LAMMPS, the framework is designed to coordinate hundreds of thousands of molecular dynamics trajectories across large-scale HPC resources.
 
-It has been used to study protein folding (Trp-Cage, Hen Egg White Lysozyme), ion transport (first passage through a potassium channel), and conformational change (Adenylate Kinase compaction).
+AdSamp automates trajectory management, simulation scheduling, checkpointing, recovery, and postprocessing. It supports execution on preemptible computing resources through automatic requeuing, allowing large simulation campaigns to continue after interruptions without requiring manual intervention.
+
+The framework has been used to investigate protein folding, ion transport, and conformational changes in biomolecular systems.
 
 ## How It Works
 
