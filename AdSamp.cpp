@@ -368,28 +368,33 @@ void lammpsrunner(Context* ctx,LAMMPS_NS::LAMMPS* lmp, OrderParameter* op, int u
 }
 
 #endif
-
-
-
-
-
-
 int getenv_int(const char* name, int default_value) {
     const char* val = std::getenv(name);
     if (!val) return default_value;
     return std::stoi(val);
 }
-static int slurm_total_tasks() {
-    return getenv_int("SLURM_NTASKS", 1);
-}
+
+#ifdef USE_SLURM //some helper functions to avoid using srun in pbs
+static int total_tasks(){ return getenv_int("SLURM_NTASKS", 1); }
+static std::string serialLauncher(){ return "srun -n 1 "; }
+static std::string launch(int n){ return "srun --cpu-bind=none -n " + std::to_string(n) + " "; }
+static std::string launchShared(int n){ return "srun --overlap --overcommit --cpu-bind=none --mem-bind=none --mem=0 -n " + std::to_string(n) + " "; }
+#else
+static int total_tasks(){ return getenv_int("NCPUS", 1); }
+static std::string serialLauncher(){ return ""; }
+static std::string launch(int n){ return "mpirun --bind-to none -np " + std::to_string(n) + " "; }
+static std::string launchShared(int n){ return launch(n); }
+#endif
+
+
 void InitializeGMX(std::string MDPFILE,  std::string GROFILE, std::string TOPFILE,std::string NDXFILE, std::string TPRFILE, std::string CPTFILE,Context* ctx ){ //make TPR file
     int rank = ctx->rank();
     if (rank!=0){
         return;
     }
-    int numcores = slurm_total_tasks();
+    int numcores = total_tasks();
     //std::string cmd = "srun --overlap --overcommit --cpu-bind=none --mem-bind=none -n " + std::to_string(numcores) + " gmx_mpi grompp -f " + MDPFILE + " -c " + GROFILE + " -r " + GROFILE + " -p " + TOPFILE + " -n " + NDXFILE + " -o " +TPRFILE + " -maxwarn 2";
-    std::string cmd = "srun --overlap --overcommit --cpu-bind=none --mem-bind=none --mem=0 -n 1 gmx_mpi grompp -f " + MDPFILE + " -c " + GROFILE + " -r " + GROFILE + " -p " + TOPFILE + " -n " + NDXFILE + " -o " +TPRFILE + " -maxwarn 2";
+    std::string cmd = launchShared(1) + "gmx_mpi grompp -f " + MDPFILE + " -c " + GROFILE + " -r " + GROFILE + " -p " + TOPFILE + " -n " + NDXFILE + " -o " +TPRFILE + " -maxwarn 2";
     if (!CPTFILE.empty()){
         cmd += " -t " + CPTFILE;
     }
@@ -401,12 +406,12 @@ void RUNGMX(std::string nom, int tipo, Context* ctx ){
     if (rank!=0){
         return;
     }
-    int numcores = slurm_total_tasks();
+    int numcores = total_tasks();
     std::cout<<"cores"<<numcores<<std::endl;
     //std::string cmd = "srun --overlap --overcommit --cpu-bind=none --mem-bind=none --mem=0 -n " +std::to_string(numcores) + " gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
     //std::string cmd = "srun --overlap --overcommit --cpu-bind=cores --mem-bind=local --exact --mem=0 -n " +std::to_string(numcores) + " gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
     //std::string cmd = "srun --overlap --cpu-bind=cores --mem-bind=local --exact --mem=0 -n " +std::to_string(numcores) + " gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
-    std::string cmd = "srun --cpu-bind=none -n " +std::to_string(numcores) + " gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
+    std::string cmd = launch(numcores) + "gmx_mpi mdrun -v -deffnm "+ nom + " -plumed " + nom + ".dat -c " + nom +".gro -append -cpt 5 -ntomp 1";
     if (tipo ==1){
         cmd += " -cpi " + nom + ".cpt";
     }
@@ -1718,12 +1723,51 @@ std::string safe(const std::string &s) {
     return s.empty() ? "\"\"" : s; //for empty string cases being printed into bash
 }
 
+int RunTimeInSeconds(const std::string &s) {
+    static const std::regex pattern(R"(^(?:([0-9]+)-)?([0-9]+):([0-5][0-9]):([0-5][0-9])$)");
+    std::smatch match;
+    if (!std::regex_match(s, match, pattern)) return 0;
+    const int days = match[1].matched ? std::stoi(match[1].str()) : 0;
+    const int hours = std::stoi(match[2].str());
+    const int minutes = std::stoi(match[3].str());
+    const int seconds = std::stoi(match[4].str());
+    const long long total=days*86400LL+hours*3600LL+minutes*60LL+seconds;
+    return static_cast<int>(total);
+}
+
+std::string PBSWalltime(const std::string& s){ //PBS doesn't accept the D-H
+    int t = RunTimeInSeconds(s);
+    char buf[32];
+    std::snprintf(buf, sizeof(buf), "%02d:%02d:%02d", t/3600, (t%3600)/60, t%60);
+    return buf;
+}
+
+#ifndef USE_SLURM
+static void pbsAccountDirectives(std::ostream& out){
+    if (std::string(BUILD_PBS_ACCOUNT).size()) out << "#PBS -A " << BUILD_PBS_ACCOUNT << '\n';
+    if (std::string(BUILD_PBS_FILESYSTEMS).size()) out << "#PBS -l filesystems=" << BUILD_PBS_FILESYSTEMS << '\n';
+}
+#endif
+
 //this function makes the bash scripts
 void writebash(std::string CPartition, std::string Cruntime,std::string email, std::string RPartition, std::string Rruntime, int cores, int MDengine, std::string CUSTOMOP, std::string Outputfolder, int runtype, int stride, std::string Delimeter, std::string structurefilesloc, std::string rootdirectory, long long nsteps, int batchsize, int perfoldertrajectories, double leftbound, double rightbound,std::string gromacslocation, std::string plumedlocation, std::string OPENMPI, std::string FFTW,double deltaT, int constanttopology, std::string LAMMPSMODULE){
-    std::string commandline ="srun -n 1 ./AdSamp Controller " +std::to_string(runtype) + " "+ safe(Outputfolder) + " "+ std::to_string(leftbound) + " "+ std::to_string(rightbound) +" "+ " &";
+    //std::string commandline ="srun -n 1 ./AdSamp Controller " +std::to_string(runtype) + " "+ safe(Outputfolder) + " "+ std::to_string(leftbound) + " "+ std::to_string(rightbound) +" "+ " &";
+#ifdef USE_SLURM
+    std::string launcher = "srun -n 1 ";
+    std::string arrayidx = "${SLURM_ARRAY_TASK_ID}";
+    std::string mpirun   = "srun --cpu-bind=none -n " + std::to_string(cores) + " ";
+#else
+    std::string launcher = "";
+    std::string arrayidx = "${PBS_ARRAY_INDEX}";
+    std::string mpirun   = "mpirun --bind-to none -np " + std::to_string(cores) + " "; //come back and see if this runs well
+#endif
+    std::string commandline = launcher + "./AdSamp Controller " + std::to_string(runtype) + " " + safe(Outputfolder) + " " + std::to_string(leftbound) + " " + std::to_string(rightbound) + " &";
+    
+    
     //adjust to also pass the batchsize and runs per trajectory
     std::ofstream controller("AdSampControl.sh");
     controller<<"#!/bin/bash"<<std::endl;
+#ifdef USE_SLURM
     controller<<"#SBATCH -p "<<CPartition<<std::endl;
     controller<<"#SBATCH -n 1"<<std::endl;
     controller<<"#SBATCH -N 1"<<std::endl;
@@ -1734,6 +1778,19 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
         controller<<"#SBATCH --mail-user="<<email<<std::endl;
         controller<<"#SBATCH --mail-type=end"<<std::endl;
     }
+#else
+    int SignalTime = RunTimeInSeconds(Cruntime)-60; //give signal a minute before
+    pbsAccountDirectives(controller); //will try to make this one a global variable, come back to here later
+    controller<<"#PBS -q "<<CPartition<<std::endl;
+    controller<<"#PBS -l select=1:ncpus=1"<<std::endl;
+    controller<<"#PBS -l walltime="<<PBSWalltime(Cruntime)<<std::endl;
+    controller << "#PBS -r y"<<std::endl;
+    if (email != "0"){
+        controller << "#PBS -M "<<email<<std::endl;
+        controller << "#PBS -m e"<<std::endl;
+    }
+    controller<<"cd $PBS_O_WORKDIR"<<std::endl; //hopefully this works
+#endif
 
     controller<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     controller<<"        . /etc/bashrc"<<std::endl;
@@ -1746,15 +1803,26 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     }
     controller<<"export PATH=$PATH:"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
     controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
+#ifdef USE_SLURM
     controller<<"trap \"echo -n 'TIMEOUT @ '; date; echo 'Resubmitting...'; scontrol requeue ${SLURM_JOB_ID}\" 10"<<std::endl;
+#else 
+    controller<<"trap 'qrerun \"$PBS_JOBID\"' USR1"<<std::endl;
+    controller<<"( sleep "<<SignalTime<<"; kill -USR1 $$ ) &"<<std::endl;
+    controller<<"SLEEPER=$!"<<std::endl;
+#endif
     controller<<commandline<<std::endl;
-    controller<<"wait"<<std::endl;
+#ifdef USE_SLURM
+    controller << "wait"<<std::endl;
+#else
+    controller << "wait \"$!\"\nRC=$?\npkill -P $SLEEPER 2>/dev/null; kill $SLEEPER 2>/dev/null\nexit $RC"<<std::endl;
+#endif
     controller.close();
 
 
     //add gromacs load if gromacs involved ugh, will have to prompt the user for its location
     std::ofstream individual("AdSamp.sh");
     individual<<"#!/bin/bash"<<std::endl;
+#ifdef USE_SLURM
     individual<<"#SBATCH -p "<<RPartition<<std::endl;
     individual<<"#SBATCH -n "<< cores<<std::endl;
     individual<<"#SBATCH -N 1"<<std::endl;
@@ -1763,6 +1831,21 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     individual<<"#SBATCH --signal=B:10@60"<<std::endl;
     individual<<"#SBATCH --requeue"<<std::endl;
     individual<<"trap \"echo -n 'TIMEOUT @ '; date; echo 'Resubmitting...'; scontrol requeue ${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}\" 10"<<std::endl;
+#else 
+    int SignalTimeR = RunTimeInSeconds(Rruntime)-60;
+    std::string arrayrange = (batchsize == 1) ? "1-2:2" : "1-" + std::to_string(batchsize);
+    pbsAccountDirectives(individual);
+    individual<<"#PBS -q "<<RPartition<<std::endl;
+    individual<<"#PBS -l select=1:ncpus="<<cores<<":mpiprocs="<<cores<<std::endl;
+    individual<<"#PBS -l walltime="<<PBSWalltime(Rruntime)<<std::endl;
+    individual<<"#PBS -J "<<arrayrange<<std::endl;
+    individual<<"#PBS -r y"<<std::endl;
+    individual<<"cd $PBS_O_WORKDIR"<<std::endl;
+    individual<<"trap 'qrerun \"$PBS_JOBID\"' USR1"<<std::endl;
+    iindividual<<"( sleep "<<SignalTimeR<<"; kill -USR1 $$ ) &"<<std::endl;
+    individual<<"SLEEPER=$!"<<std::endl;
+
+#endif
     individual<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     individual<<"        . /etc/bashrc"<<std::endl;
     individual << "fi" << std::endl;
@@ -1775,12 +1858,16 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     individual<<"export PATH=$PATH:"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
     individual<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
     if (MDengine ==0){
-        individual << "srun --cpu-bind=none -n " << cores<< " ./AdSamp "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<<"${SLURM_ARRAY_TASK_ID} "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
+        individual <<mpirun<< " ./AdSamp "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<< arrayidx << " "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
     }
     else{
-        individual << "./AdSamp "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<<"${SLURM_ARRAY_TASK_ID} "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
+        individual << "./AdSamp "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<< arrayidx << " "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
     }
-    individual<<"wait"<<std::endl;
+#ifdef USE_SLURM
+    individual << "wait"<<std::endl;
+#else
+    individual << "wait \"$!\"\nRC=$?\npkill -P $SLEEPER 2>/dev/null; kill $SLEEPER 2>/dev/null\nexit $RC"<<std::endl;
+#endif
     individual.close();
 }
 
@@ -1859,10 +1946,12 @@ int gronamechecker(std::string rootdirectory, std::string structurefiles,std::st
 
 }
 void processingbash(std::string OPENMPI, std::string FFTW, std::string gromacslocation, std::string plumedlocation, std::string partition, std::string runtime, std::string email, int runtype, std::string runfolder, std::string newfoldername, std::string prior, std::string LAMMPSMODULE ){
-    std::string commandline ="srun -n 1 ./AdSamp " +safe(runfolder) + " "+ safe(newfoldername) + " "+ safe(prior) + " "+ std::to_string(runtype);
+    //I think this processingbash command line is fine for both slurm and the other case but will have to verify later
+    std::string commandline = serialLauncher() + "./AdSamp " +safe(runfolder) + " "+ safe(newfoldername) + " "+ safe(prior) + " "+ std::to_string(runtype);
     //adjust to also pass the batchsize and runs per trajectory
     std::ofstream controller("PostProcessing.sh");
     controller<<"#!/bin/bash"<<std::endl;
+#ifdef USE_SLURM
     controller<<"#SBATCH -p "<<partition<<std::endl;
     controller<<"#SBATCH -n 1"<<std::endl;
     controller<<"#SBATCH -N 1"<<std::endl;
@@ -1871,6 +1960,17 @@ void processingbash(std::string OPENMPI, std::string FFTW, std::string gromacslo
         controller<<"#SBATCH --mail-user="<<email<<std::endl;
         controller<<"#SBATCH --mail-type=end"<<std::endl;
     }
+#else 
+    pbsAccountDirectives(controller); //will try to make this one a global variable, come back to here later
+    controller<<"#PBS -q "<<partition<<std::endl;
+    controller<<"#PBS -l select=1:ncpus=1"<<std::endl;
+    controller<<"#PBS -l walltime="<<PBSWalltime(runtime)<<std::endl;
+    if (email != "0"){
+        controller << "#PBS -M "<<email<<std::endl;
+        controller << "#PBS -m e"<<std::endl;
+    }
+    controller<<"cd $PBS_O_WORKDIR"<<std::endl; //hopefully this works
+#endif
 
     controller<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     controller<<"        . /etc/bashrc"<<std::endl;
@@ -1891,6 +1991,7 @@ void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromac
     //adjust to also pass the batchsize and runs per trajectory
     std::ofstream controller("CPTExport.sh");
     controller<<"#!/bin/bash"<<std::endl;
+#ifdef USE_SLURM
     controller<<"#SBATCH -p "<<partition<<std::endl;
     controller<<"#SBATCH -n 1"<<std::endl;
     controller<<"#SBATCH -N 1"<<std::endl;
@@ -1899,6 +2000,17 @@ void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromac
         controller<<"#SBATCH --mail-user="<<email<<std::endl;
         controller<<"#SBATCH --mail-type=end"<<std::endl;
     }
+#else 
+    pbsAccountDirectives(controller); //will try to make this one a global variable, come back to here later
+    controller<<"#PBS -q "<<partition<<std::endl;
+    controller<<"#PBS -l select=1:ncpus=1"<<std::endl;
+    controller<<"#PBS -l walltime="<<PBSWalltime(runtime)<<std::endl;
+    if (email != "0"){
+        controller << "#PBS -M "<<email<<std::endl;
+        controller << "#PBS -m e"<<std::endl;
+    }
+    controller<<"cd $PBS_O_WORKDIR"<<std::endl; //hopefully this works
+#endif
 
     controller<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     controller<<"        . /etc/bashrc"<<std::endl;
@@ -1913,7 +2025,7 @@ void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromac
     controller<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
     
     if (MDEngine ==0){
-        controller << "srun -n 1 ./AdSamp CONVERT " +safe(postprocessedfolder) + " "+ safe(rootdirectory) + " "+ safe(newfoldername) + " "+ std::to_string(MDEngine) + " " + std::to_string(constanttopology)<<std::endl; //add in an extra input so not same length as controller
+        controller << serialLauncher()+"./AdSamp CONVERT " +safe(postprocessedfolder) + " "+ safe(rootdirectory) + " "+ safe(newfoldername) + " "+ std::to_string(MDEngine) + " " + std::to_string(constanttopology)<<std::endl; //add in an extra input so not same length as controller
     }
     else{
         controller << "./AdSamp CONVERT " +safe(postprocessedfolder) + " "+ safe(rootdirectory) + " "+ safe(newfoldername) + " "+ std::to_string(MDEngine) + " " + std::to_string(constanttopology)<<std::endl; //add in an extra input so not same length as controller
@@ -1930,6 +2042,9 @@ void mathematicsbash(int calculationtype ,int numsteps, double deltaT, std::stri
 
     std::ofstream Bash(nombre);
     Bash<<"#!/bin/bash"<<std::endl;
+
+
+#ifdef USE_SLURM
     Bash<<"#SBATCH -p "<<partition<<std::endl;
     Bash<<"#SBATCH -n 1"<<std::endl;
     Bash<<"#SBATCH -N 1"<<std::endl;
@@ -1938,6 +2053,22 @@ void mathematicsbash(int calculationtype ,int numsteps, double deltaT, std::stri
         Bash<<"#SBATCH --mail-user="<<email<<std::endl;
         Bash<<"#SBATCH --mail-type=end"<<std::endl;
     }
+#else 
+    pbsAccountDirectives(Bash); //will try to make this one a global variable, come back to here later
+    Bash<<"#PBS -q "<<partition<<std::endl;
+    Bash<<"#PBS -l select=1:ncpus=1"<<std::endl;
+    Bash<<"#PBS -l walltime="<<PBSWalltime(runtime)<<std::endl;
+    if (email != "0"){
+        Bash << "#PBS -M "<<email<<std::endl;
+        Bash << "#PBS -m e"<<std::endl;
+    }
+    Bash<<"cd $PBS_O_WORKDIR"<<std::endl; //hopefully this works
+#endif
+
+    Bash<<"if [ -f /etc/bashrc ]; then"<<std::endl;
+    Bash<<"        . /etc/bashrc"<<std::endl;
+    Bash << "fi" << std::endl;
+
     Bash<< "module purge"<<std::endl;
     Bash<<"module load "<<OPENMPI<<std::endl;
     Bash<<"module load "<<FFTW<<std::endl;
@@ -2037,7 +2168,7 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
         if (isExport ==2){
             int runtype = ask<int>("Most Recent Run type (0: Basin, 1: Probabilistic, 2: Exploration)",[](int x){return x==0 || x==1 || x ==2;});
             std::string runfolder = ask<std::string>("Completed Run Directory",[](const std::string& s){return std::filesystem::exists(s) && std::filesystem::is_directory(s);});
-            std::string newfoldername = ask<std::string>("Postprocessing folder name",[](const std::string& s){return !std::filesystem::exists(s);});;
+            std::string newfoldername = ask<std::string>("Postprocessing folder name",[](const std::string& s){return !std::filesystem::exists(s);});
             std::string prior="";
             if (runtype ==1){
                 prior = ask<std::string>("Groname File",[](const std::string& s){return std::filesystem::exists(s);});
@@ -2055,7 +2186,7 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
                 postprocessedfolder = ask<std::string>("Postprocessed Directory",[](const std::string& s){return std::filesystem::exists(s) && std::filesystem::is_directory(s);});
                 condition = checkstructureinputs(".cpt", postprocessedfolder, constanttopology);
             }
-            std::string newfoldername = ask<std::string>("Output folder name",[](const std::string& s){return !std::filesystem::exists(s);});;
+            std::string newfoldername = ask<std::string>("Output folder name",[](const std::string& s){return !std::filesystem::exists(s);});
             condition = 0;
             std::string rootdirectory;
             if (MDengine ==1){ //lammps doesn't need this matching
@@ -2273,19 +2404,28 @@ void Login(){ //this will take in user inputs, ensure files are in order, then c
     writebash(CPartition, Cruntime, email, RPartition, Rruntime, cores, MDengine, CUSTOMOP, Outputfolder, runtype, stride, Delimeter, structurefilesloc, rootdirectory, nsteps, batchsize, perfoldertrajectories, leftbound, rightbound,gromacslocation,plumedlocation,OPENMPI, FFTW,deltaT, constanttopology,LAMMPSMODULE);
 }
 std::string getSlurmJobID() {
+#ifdef USE_SLURM
     const char* id = std::getenv("SLURM_JOB_ID");
+#else 
+    const char* id = std::getenv("PBS_JOBID");
+#endif
     return id ? std::string(id) : "";
 }
 
-bool isJobRunning(int jobid) {
-    std::string cmd = "squeue -h -r -j " + std::to_string(jobid) + " -o \"%i %R\"";//this tests if a job is currently running
+bool isJobRunning(std::string jobid) {
+#ifdef USE_SLURM
+    std::string cmd = "squeue -h -r -j " +jobid + " -o \"%i %R\"";//this tests if a job is currently running
+#else
+    const std::string cmd = "qstat -f -t '" + jobid + "' 2>/dev/null";
+#endif
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) return false;
     char buffer[256];
-    std::string target = std::to_string(jobid);
+    std::string target = jobid;
     int running = 0;
     while (fgets(buffer, sizeof(buffer), pipe)) {
         std::string line(buffer);
+#ifdef USE_SLURM
         if (!line.empty() && line.back() == '\n')
             line.pop_back();
         if (line == target || line.rfind(target + "_", 0) == 0) {
@@ -2296,16 +2436,33 @@ bool isJobRunning(int jobid) {
                 running =1;
             }
         }
+#else 
+        std::istringstream fields(line);
+        std::string field;
+        std::string equals;
+        std::string state;
+        if (fields >> field >> equals >> state &&
+            field == "job_state" && equals == "=" &&
+            (state == "R" || state == "Q" || state == "B")) {
+            running = 1;
+        }
+#endif
+
     }
     pclose(pipe);
     return running==1;  //true if one is properly running false otherwise
 }
-int submitjob(std::string scriptname){
+std::string submitjob(std::string scriptname){
+#ifdef USE_SLURM
     std::string cmd = "sbatch " + scriptname;
+#else 
+    std::string cmd = "qsub " + scriptname;
+#endif
+
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) {
         std::cout<<"Job Submit Failure"<<std::endl;
-        return 0;
+        return "";
     }
     char buffer[256];
     std::string output;
@@ -2315,12 +2472,21 @@ int submitjob(std::string scriptname){
     pclose(pipe);
     //it might come to be the case that someone not on my tested clusters (grace, bouchet, expanse) will have different output when submitting a job
     //in manual flag this set of lines for edits
+#ifdef USE_SLURM
     std::regex re("Submitted batch job ([0-9]+)");
     std::smatch match;
     if (std::regex_search(output, match, re)) {
-        return std::stoi(match[1]);
+        return match[1];
     }
-    return 0;
+    return "";
+#else 
+    const auto first = output.find_first_not_of(" \t\r\n");
+    if (first == std::string::npos) {
+        return "";
+    }
+    const auto last = output.find_last_not_of(" \t\r\n");
+    return output.substr(first, last - first + 1);
+#endif
 }
 
 int readbasinpathline(const std::string& line){
@@ -2493,36 +2659,37 @@ void controller(int simtype, std::string outputfolder, double leftbound, double 
         std::filesystem::create_directories(outputfolder);
     }
     //controller steps 1. see if there's another active controller, if so check slurm tag to ensure this one is more recent, if so cancel it
-    int prevjob=0;
+    std::string prevjob="";
     std::ifstream controljobs("controljobs.txt");
     if (controljobs.is_open()){ 
         if (!(controljobs >> prevjob)) {
-            prevjob =0;
+            prevjob ="";
         }
     }
     controljobs.close();
     int myjob = std::stoi(getSlurmJobID());
-    if (prevjob!=0){
-        if (myjob>prevjob){
-            std::cout<<"scancel " + std::to_string(prevjob)<<std::endl;
-            std::string cmd = "scancel " + std::to_string(prevjob);
-            std::system(cmd.c_str()); 
-        }
+    if (prevjob != "" && prevjob != std::to_string(myjob)){
+#ifdef USE_SLURM
+        std::string cmd = "scancel " +prevjob;
+#else 
+        std::string cmd = "qdel " + prevjob;
+#endif 
+        std::system(cmd.c_str()); 
     }
     std::ofstream out("controljobs.txt",std::ios::trunc);
     out<<myjob<<std::endl;
     out.close();
     //step 2. See if there are subjobs running, if there are, skip to controlling
-    int subjobs=0;
+    std::string subjobs;
     std::ifstream arrayjobs("arrayjobs.txt");
     if (arrayjobs.is_open()){
         if (!(arrayjobs>>subjobs)){
-            subjobs = 0;
+            subjobs = "";
         }
     }
     arrayjobs.close();
     //step 3. if there aren't start jobs and record their job id
-    if (subjobs ==0 || !isJobRunning(subjobs)){
+    if (subjobs =="" || !isJobRunning(subjobs)){
         std::cout<<subjobs<<isJobRunning(subjobs)<<std::endl;
         subjobs = submitjob("AdSamp.sh");
         std::ofstream arrayjobs("arrayjobs.txt",std::ios::trunc);
@@ -2662,7 +2829,7 @@ void PostProcessing(std::string RUNFOLDER, std::string NEWFOLDER, std::string pr
                             orderparameterstxt.close();
                         }else{
                             std::ofstream successestxt(NEWFOLDER + "/successes.txt", std::ios::app);
-                            successestxt<<propername <<" , NA"<<std::endl;;
+                            successestxt<<propername <<" , NA"<<std::endl;
                             successestxt.close();
                             std::ofstream orderparameterstxt(NEWFOLDER + "/orderparameters.txt", std::ios::app);
                             orderparameterstxt<<propername<<" , NA"<<std::endl;
@@ -2707,7 +2874,7 @@ void PostProcessing(std::string RUNFOLDER, std::string NEWFOLDER, std::string pr
                                 orderparameterstxt.close();
                             }else{
                                 std::ofstream incompletestxt(NEWFOLDER + "/incompletes.txt", std::ios::app);
-                                incompletestxt<<propername <<" , NA"<<std::endl;;
+                                incompletestxt<<propername <<" , NA"<<std::endl;
                                 incompletestxt.close();
                                 std::ofstream orderparameterstxt(NEWFOLDER + "/orderparameters.txt",std::ios::app);
                                 orderparameterstxt<<propername<<" , NA"<<std::endl;
@@ -2715,7 +2882,7 @@ void PostProcessing(std::string RUNFOLDER, std::string NEWFOLDER, std::string pr
                             }
                         }else{
                             std::ofstream incompletestxt(NEWFOLDER + "/incompletes.txt", std::ios::app);
-                            incompletestxt<<propername <<" , NA"<<std::endl;;
+                            incompletestxt<<propername <<" , NA"<<std::endl;
                             incompletestxt.close();
                             std::ofstream orderparameterstxt(NEWFOLDER + "/orderparameters.txt",std::ios::app);
                             orderparameterstxt<<propername<<" , NA"<<std::endl;
@@ -2856,7 +3023,7 @@ void gromacsExport(Context* ctx,std::string groname, std::string cptfile, std::s
     int rank =ctx->rank();
     if (rank ==0){
         InitializeGMX("i.mdp", groname, topologyfile, indexfile, "sil.tpr", cptfile, ctx);
-        std::string cmd = "srun --cpu-bind=none -n 1 gmx_mpi mdrun -s sil.tpr -cpi " + cptfile + " -rerun " + cptfile + " -noappend -o sil.trr";
+        std::string cmd = launch(1) + "gmx_mpi mdrun -s sil.tpr -cpi " + cptfile + " -rerun " + cptfile + " -noappend -o sil.trr";
         std::system(cmd.c_str());
         std::vector<std::string> TRRS = listdirEnding(".", ".trr");
         std::string TRR = TRRS[0];

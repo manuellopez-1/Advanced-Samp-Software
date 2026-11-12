@@ -32,6 +32,17 @@ if(NOT MD_ENGINE STREQUAL "LAMMPS" AND NOT MD_ENGINE STREQUAL "GROMACS")
         "[-DFFTW_MODULE=fftw/x.y.z]")
 endif()
 
+set(SCHEDULER "SLURM" CACHE STRING "Batch scheduler: SLURM or PBS")
+set_property(CACHE SCHEDULER PROPERTY STRINGS SLURM PBS)
+if(NOT SCHEDULER STREQUAL "SLURM" AND NOT SCHEDULER STREQUAL "PBS")
+    message(FATAL_ERROR "SCHEDULER must be SLURM or PBS")
+endif()
+set(PBS_ACCOUNT "" CACHE STRING "Project/allocation for #PBS -A")
+set(PBS_FILESYSTEMS "" CACHE STRING "Value for #PBS -l filesystems=, e.g. home:eagle; empty to omit")
+if(SCHEDULER STREQUAL "PBS" AND PBS_ACCOUNT STREQUAL "")
+    message(FATAL_ERROR "PBS builds need -DPBS_ACCOUNT=<project>")
+endif()
+
 if(MD_ENGINE STREQUAL "LAMMPS")
 	set(MD_ENGINE_ID 0)
 
@@ -110,6 +121,10 @@ add_executable(AdSamp AdSamp.cpp orderparameterpicker.cpp)
 
 target_include_directories(AdSamp PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
 target_link_libraries(AdSamp PRIVATE MPI::MPI_CXX)
+
+if(SCHEDULER STREQUAL "SLURM")
+    target_compile_definitions(AdSamp PRIVATE USE_SLURM)
+endif()
 
 if(MD_ENGINE STREQUAL "LAMMPS")
 	target_compile_definitions(AdSamp PRIVATE USE_LAMMPS)
