@@ -1795,7 +1795,9 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     controller<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     controller<<"        . /etc/bashrc"<<std::endl;
     controller << "fi" << std::endl;
+#ifdef USE_SLURM
     controller<< "module purge"<<std::endl;
+#endif
     controller<<"module load "<<OPENMPI<<std::endl;
     controller<<"module load "<<FFTW<<std::endl;
     if (!LAMMPSMODULE.empty()){
@@ -1836,13 +1838,12 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     std::string arrayrange = (batchsize == 1) ? "1-2:2" : "1-" + std::to_string(batchsize);
     pbsAccountDirectives(individual);
     individual<<"#PBS -q "<<RPartition<<std::endl;
-    individual<<"#PBS -l select=1:ncpus="<<cores<<":mpiprocs="<<cores<<std::endl;
+    individual<<"#PBS -l select=1:ncpus="<<cores<<":mpiprocs=1:ompthreads="<<cores<<std::endl;
     individual<<"#PBS -l walltime="<<PBSWalltime(Rruntime)<<std::endl;
     individual<<"#PBS -J "<<arrayrange<<std::endl;
     individual<<"#PBS -r y"<<std::endl;
     individual<<"cd $PBS_O_WORKDIR"<<std::endl;
-    //individual<<"trap 'qrerun \"$PBS_JOBID\"' USR1"<<std::endl;
-    individual<<"#PBS -l select=1:ncpus="<<cores<<":mpiprocs="<<cores<<":ompthreads=1"<<std::endl;
+    individual<<"trap 'qrerun \"$PBS_JOBID\"' USR1"<<std::endl;
     individual<<"( sleep "<<SignalTimeR<<"; kill -USR1 $$ ) &"<<std::endl;
     individual<<"SLEEPER=$!"<<std::endl;
 
@@ -1850,7 +1851,9 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     individual<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     individual<<"        . /etc/bashrc"<<std::endl;
     individual << "fi" << std::endl;
+#ifdef USE_SLURM
     individual<<"module purge" <<std::endl;
+#endif
     individual<<"module load "<<OPENMPI<<std::endl;
     individual<<"module load "<<FFTW<<std::endl;
     if (!LAMMPSMODULE.empty()){
@@ -1976,7 +1979,9 @@ void processingbash(std::string OPENMPI, std::string FFTW, std::string gromacslo
     controller<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     controller<<"        . /etc/bashrc"<<std::endl;
     controller << "fi" << std::endl;
+#ifdef USE_SLURM
     controller<<"module purge"<<std::endl;
+#endif
     controller<<"module load "<<OPENMPI<<std::endl;
     controller<<"module load "<<FFTW<<std::endl;
     if (!LAMMPSMODULE.empty()){
@@ -2016,7 +2021,9 @@ void exportfromcptbash(std::string OPENMPI, std::string FFTW, std::string gromac
     controller<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     controller<<"        . /etc/bashrc"<<std::endl;
     controller << "fi" << std::endl;
+#ifdef USE_SLURM
     controller << "module purge" << std::endl;
+#endif
     controller<<"module load "<<OPENMPI<<std::endl;
     controller<<"module load "<<FFTW<<std::endl;
     if (!LAMMPSMODULE.empty()){
@@ -2069,8 +2076,9 @@ void mathematicsbash(int calculationtype ,int numsteps, double deltaT, std::stri
     Bash<<"if [ -f /etc/bashrc ]; then"<<std::endl;
     Bash<<"        . /etc/bashrc"<<std::endl;
     Bash << "fi" << std::endl;
-
+#ifdef USE_SLURM
     Bash<< "module purge"<<std::endl;
+#endif
     Bash<<"module load "<<OPENMPI<<std::endl;
     Bash<<"module load "<<FFTW<<std::endl;
     if (!LAMMPSMODULE.empty()){
