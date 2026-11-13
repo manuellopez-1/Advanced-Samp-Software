@@ -1841,7 +1841,8 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     individual<<"#PBS -J "<<arrayrange<<std::endl;
     individual<<"#PBS -r y"<<std::endl;
     individual<<"cd $PBS_O_WORKDIR"<<std::endl;
-    individual<<"trap 'qrerun \"$PBS_JOBID\"' USR1"<<std::endl;
+    //individual<<"trap 'qrerun \"$PBS_JOBID\"' USR1"<<std::endl;
+    individual<<"#PBS -l select=1:ncpus="<<cores<<":mpiprocs="<<cores<<":ompthreads=1"<<std::endl;
     individual<<"( sleep "<<SignalTimeR<<"; kill -USR1 $$ ) &"<<std::endl;
     individual<<"SLEEPER=$!"<<std::endl;
 
