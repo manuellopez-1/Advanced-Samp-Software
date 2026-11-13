@@ -7,8 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(MPI REQUIRED)
 
 execute_process(
-    COMMAND bash -c "module -t list 2>&1 | grep -i openmpi | head -n1"
-    OUTPUT_VARIABLE DETECTED_OPENMPI
+    COMMAND bash -c "module -t list 2>&1 | grep -i -E 'openmpi|mpich' | head -n1"
+    OUTPUT_VARIABLE DETECTED_MPI
     OUTPUT_STRIP_TRAILING_WHITESPACE
     ERROR_QUIET)
 
@@ -18,7 +18,7 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE
     ERROR_QUIET)
 
-message(STATUS "OpenMPI module: '${DETECTED_OPENMPI}'")
+message(STATUS "MPI module:     '${DETECTED_MPI}'")
 message(STATUS "FFTW module:    '${DETECTED_FFTW}'")
 
 set(MD_ENGINE "" CACHE STRING "Which MD engine to build for: LAMMPS or GROMACS")

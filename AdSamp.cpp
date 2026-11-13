@@ -2107,9 +2107,9 @@ void mathematicsbash(int calculationtype ,int numsteps, double deltaT, std::stri
 void Login(){ //this will take in user inputs, ensure files are in order, then create a bash script for controller launch
     int query= ask<int>("Simulation (1), PostProcessing (2), Or Mathematics (3)?",[](int x){return x==1 || x==2 ||x==3;});
     //part one packages
-    std::string OPENMPI = BUILD_OPENMPI_MODULE;
+    std::string OPENMPI = BUILD_MPI_MODULE;
     if (OPENMPI.empty()){
-        OPENMPI  = ask<std::string>("OpenMPI package name");
+        OPENMPI  = ask<std::string>("MPI package name (e.g. openmpi/x.y.z or mpich/x.y.z)");
     }
     std::string FFTW = BUILD_FFTW_MODULE;
     if (FFTW.empty()){
