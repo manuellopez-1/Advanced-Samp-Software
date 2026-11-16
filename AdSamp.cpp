@@ -380,7 +380,11 @@ static std::string serialLauncher(){ return "srun -n 1 "; }
 static std::string launch(int n){ return "srun --cpu-bind=none -n " + std::to_string(n) + " "; }
 static std::string launchShared(int n){ return "srun --overlap --overcommit --cpu-bind=none --mem-bind=none --mem=0 -n " + std::to_string(n) + " "; }
 #else
-static int total_tasks(){ return getenv_int("NCPUS", 1); }
+static int total_tasks(){
+    int n = getenv_int("NCPUS", 0);
+    if (n <= 0) n = getenv_int("OMP_NUM_THREADS", 0); // unreliable, last resort
+    return n > 0 ? n : 1;
+}
 static std::string serialLauncher(){ return ""; }
 static std::string launch(int n){ return "mpirun --bind-to none -np " + std::to_string(n) + " "; }
 static std::string launchShared(int n){ return launch(n); }
@@ -1839,7 +1843,7 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     std::string arrayrange = (batchsize == 1) ? "1-2:2" : "1-" + std::to_string(batchsize);
     pbsAccountDirectives(individual);
     individual<<"#PBS -q "<<RPartition<<std::endl;
-    individual<<"#PBS -l select=1:ncpus="<<cores<<":mpiprocs=1:ompthreads="<<cores<<std::endl;
+    individual<<"#PBS -l select=1:ncpus="<<cores<<":mpiprocs="<<cores<<":ompthreads=1"<<std::endl;
     individual<<"#PBS -l walltime="<<PBSWalltime(Rruntime)<<std::endl;
     individual<<"#PBS -J "<<arrayrange<<std::endl;
     individual<<"#PBS -r y"<<std::endl;
@@ -1862,6 +1866,9 @@ void writebash(std::string CPartition, std::string Cruntime,std::string email, s
     }
     individual<<"export PATH=$PATH:"<<plumedlocation<<"/bin:"<<gromacslocation<<"/bin"<<std::endl;
     individual<<"export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"<<plumedlocation<<"/lib:"<<gromacslocation<<"/lib"<<std::endl;
+#ifndef USE_SLURM
+    individual<<"export NCPUS="<<cores<<std::endl;
+#endif
     if (MDengine ==0){
         individual <<mpirun<< " ./AdSamp "<<std::to_string(MDengine)<<" "<<std::to_string(runtype)<<" "<< safe(Outputfolder)<<" "<< arrayidx << " "<<std::to_string(leftbound)<<" "<<std::to_string(rightbound)<<" "<<safe(structurefilesloc)<<" "<<Delimeter<<" "<<std::to_string(nsteps)<<" "<<safe(CUSTOMOP)<<" "<<safe(rootdirectory)<<" "<<std::to_string(perfoldertrajectories)<<" "<<std::to_string(stride)<<" "<<std::to_string(deltaT)<<" "<<std::to_string(constanttopology)<< " &"<< std::endl;
     }
